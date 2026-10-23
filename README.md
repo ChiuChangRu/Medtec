@@ -1,0 +1,23 @@
+# 醫材機會島
+
+以產品類別、製程能力及市場線索探索醫療器材公開資訊的靜態網站。首頁採六角形島嶼導覽，支援節點搜尋、日夜模式、鳥瞰視角與來源切換。
+
+## 資料來源
+
+| 面板 | 來源 | 用途 |
+| --- | --- | --- |
+| 台灣標案 | [OpenFun 政府採購公告 API](https://pcc-api.openfun.app/) 的 `/api/searchbytitle` | 依標案名稱尋找公開公告、機關與原始連結 |
+| 海外廠商 | [openFDA Device 510(k) API](https://open.fda.gov/apis/device/510k/) | 依器材名稱探索申請廠商及 FDA 紀錄 |
+| 歐噴目錄 | [歐噴資料庫](https://data.openfun.tw/) 的 Device Auth 與搜尋 API | 使用者授權後查詢可用資料集 |
+
+站內沒有預載商機數字。公開公告與 FDA 紀錄僅作為初步線索；需回原始來源確認公告階段、規格、廠商身分和合作意願。
+
+## 部署與本機預覽
+
+儲存庫根目錄的 `index.html` 可以直接由 GitHub Pages 服務。到 **Settings → Pages** 選擇 **Deploy from a branch / main / root**。本機預覽可執行 `python -m http.server 8000` 後開啟 `http://localhost:8000/`。
+
+網站是純前端，無建置程序與伺服器端密鑰。歐噴存取權杖僅保存在使用者瀏覽器的 `sessionStorage`；分頁關閉後移除。第三方 API 的流量限制、服務狀態和瀏覽器跨來源政策可能影響查詢。
+
+## 設計說明
+
+以六角島嶼、側欄探索、節點資訊卡和日夜切換呈現資訊架構；圖形、文字與程式碼均為本專案重新製作。
