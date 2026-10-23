@@ -46,7 +46,7 @@
       <label class="searchbox"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="filter" type="search" placeholder="搜尋產品、材料、技術..." aria-label="搜尋節點"></label>
       <div class="sectionlabel"><span id="listHeading">PRODUCT SPECTRUM</span><span id="count"></span></div>
       <div class="item-list" id="itemList"></div>
-      <div class="leftbottom"><b>資料判讀</b><br>分類僅供探索。公告狀態、產品規格與合作可能性，請回到原始來源查證。</div>
+      <div class="leftbottom"><b>資料判讀</b><br>歐噴搜尋屬於索引線索；產品規格、機構身分與合作可能性，請回到原始來源查證。</div>
     </aside>
     <section class="right" aria-live="polite">
       <div class="righthead"><small>02 / MARKET INTELLIGENCE</small><span id="nodeNumber">01 — 13</span></div>
@@ -102,9 +102,10 @@ async function getJSON(url,options={}){const controller=new AbortController(),ti
 function renderOpenFun(data){
  const datasets=Array.isArray(data.datasets?.results)?data.datasets.results:[],groups=Array.isArray(data.entities?.groups)?data.entities.groups:[];
  const namedDatasets=datasets.filter(r=>String(r.title||"").toLowerCase().includes(String(data.q||"").toLowerCase()));
- const entityCards=groups.flatMap(g=>(Array.isArray(g.entities)?g.entities.slice(0,3):[]).map(e=>({group:g,name:e.name,url:e.url}))).slice(0,12);
+ const medicalGroups=groups.filter(g=>/健保特材|特材品項|醫療院所|醫療機構|醫院|稅籍.*登記|公司登記|機關代碼/.test(String(g.dataset_title||"")));
+ const entityCards=medicalGroups.flatMap(g=>(Array.isArray(g.entities)?g.entities.slice(0,3):[]).map(e=>({group:g,name:e.name,url:e.url}))).slice(0,12);
  const count=Number(data.entities?.total)||0,datasetCount=Number(data.datasets?.total)||0;
- let html=`<p class="status">公開索引中有 ${count.toLocaleString()} 筆條目、${datasetCount.toLocaleString()} 份資料集命中關鍵字；下方只顯示部分摘要，並非銷售量或可投標件數。</p>`;
+ let html=`<p class="status">歐噴全域索引有 ${count.toLocaleString()} 筆條目、${datasetCount.toLocaleString()} 份資料集命中關鍵字；下方只列醫療相關來源的摘要，不代表銷售量或採購需求。</p>`;
  if(entityCards.length){html+='<p class="status section-title">相關資料條目</p>'+entityCards.map(r=>`<article class="result"><strong>${escapeHTML(r.name||"未提供名稱")}</strong><p class="meta">${escapeHTML(r.group.dataset_title||"資料來源未提供")} · 此資料集相符 ${Number(r.group.total||0).toLocaleString()} 筆</p><a href="${escapeHTML(safeURL(r.url||r.group.dataset_url))}" target="_blank" rel="noopener noreferrer">查看歐噴條目 ↗</a></article>`).join("")}
  if(namedDatasets.length){html+='<p class="status section-title">名稱相符的資料集</p>'+namedDatasets.slice(0,6).map(r=>`<article class="result"><strong>${escapeHTML(r.title||r.slug||"資料集")}</strong><p class="meta">${escapeHTML((r.description||r.slug||"").slice(0,180))}${(r.description||"").length>180?"…":""}</p><a href="${escapeHTML(safeURL(r.url||"https://data.openfun.tw/datasets/"+encodeURIComponent(r.slug||"")))}" target="_blank" rel="noopener noreferrer">查看資料集與來源 ↗</a></article>`).join("")}
  if(!entityCards.length&&!namedDatasets.length)html+='<p class="status">沒有找到名稱相符的條目或資料集；可換較短的關鍵字，例如「導管」或「透析」。</p>';
