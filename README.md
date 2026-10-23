@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | 台灣標案 | [OpenFun 政府採購公告 API](https://pcc-api.openfun.app/) 的 `/api/searchbytitle` | 依標案名稱尋找公開公告、機關與原始連結 |
 | 海外廠商 | [openFDA Device 510(k) API](https://open.fda.gov/apis/device/510k/) | 依器材名稱探索申請廠商及 FDA 紀錄 |
-| 歐噴目錄 | [歐噴資料庫](https://data.openfun.tw/) 的 Device Auth 與搜尋 API | 使用者授權後查詢可用資料集 |
+| 歐噴資料 | [歐噴資料庫](https://data.openfun.tw/) 公開統一搜尋 API | 免登入檢索資料集及條目摘要；逐筆 API 可能需授權 |
 
 站內沒有預載商機數字。公開公告與 FDA 紀錄僅作為初步線索；需回原始來源確認公告階段、規格、廠商身分和合作意願。
 
