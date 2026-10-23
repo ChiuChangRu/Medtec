@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#e7d9cd">
-  <meta name="description" content="以產品類別與製程能力探索醫療器材公開資料、台灣標案與海外廠商線索。">
+  <meta name="description" content="以產品類別與製程能力查詢歐噴資料庫的醫療器材公開索引。">
   <title>台灣醫療器材商情查詢</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap');
@@ -24,11 +24,10 @@
     .right{min-width:0;max-width:1280px;width:100%;margin:0 auto;padding:35px clamp(28px,5vw,76px) 70px}.righthead{display:flex;justify-content:space-between;align-items:center;gap:20px}.righthead small{font:12px 'DM Mono',monospace;color:var(--accent);letter-spacing:.16em}.righthead span{font:12px 'DM Mono',monospace;color:var(--muted)}
     .feature{display:grid;grid-template-columns:62px 1fr;column-gap:22px;align-items:start;margin-top:29px}.feature-icon{grid-row:1/4;width:58px;height:58px;border-radius:12px;background:var(--sea);display:grid;place-items:center;font:30px Georgia,serif}.feature h2{font-size:38px;line-height:1.25;letter-spacing:-.03em;margin:0 0 9px}.feature p{font-size:17px;color:#574c44;line-height:1.8;margin:0;max-width:840px}.tags{display:flex;gap:9px;flex-wrap:wrap;margin:18px 0 0}.tag{border:1px solid #b8a699;border-radius:20px;padding:7px 13px;color:#554a43;font-size:13px}
     .divider{height:1px;background:var(--line);margin:35px 0 29px}.datahead{display:flex;justify-content:space-between;align-items:center}.datahead strong{font-size:23px}.datahead small{font:12px 'DM Mono',monospace;color:var(--muted)}
-    .tabs{display:flex;gap:8px;margin:21px 0 17px}.tab{border:1px solid #aa998c;background:transparent;border-radius:3px;padding:12px 22px;font-size:15px;font-weight:700;color:#4f443e}.tab:hover,.tab.active{color:#fff;background:var(--ink);border-color:var(--ink)}
     .hint{font-size:14px;line-height:1.7;color:var(--muted);margin:0 0 13px}.queryline{display:flex;gap:9px;max-width:780px}.queryline input{min-width:0;flex:1;border:1px solid #aa998c;background:#fffaf3;padding:13px 16px;font-size:17px;outline-color:var(--accent)}.primary{border:1px solid var(--accent);border-radius:2px;background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:12px 23px;white-space:nowrap}.primary:hover{background:#8f3929}
-    .results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:21px;min-height:75px}.status{grid-column:1/-1;font-size:14px;line-height:1.65;color:var(--muted);margin:0 0 1px}.status.section-title{font-size:18px;font-weight:700;color:var(--ink);margin:15px 0 0}.result{min-width:0;border:1px solid #cfbbac;background:rgba(255,250,244,.75);padding:19px 21px;display:flex;flex-direction:column;min-height:150px}.result strong{display:block;font-size:17px;line-height:1.55}.result .meta{font-size:14px;color:var(--muted);line-height:1.65;margin:11px 0 16px}.result a{font-size:14px;color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:4px;margin-top:auto;align-self:start}.source{font-size:13px;color:var(--muted);line-height:1.7;margin-top:26px}.source a{color:var(--ink)}.pagination{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;font-size:14px}.pagination button{padding:9px 15px;background:transparent;border:1px solid var(--line);font-size:14px}.pagination button:disabled{opacity:.45}
+    .results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:21px;min-height:75px}.status{grid-column:1/-1;font-size:14px;line-height:1.65;color:var(--muted);margin:0 0 1px}.status.section-title{font-size:18px;font-weight:700;color:var(--ink);margin:15px 0 0}.result{min-width:0;border:1px solid #cfbbac;background:rgba(255,250,244,.75);padding:19px 21px;display:flex;flex-direction:column;min-height:150px}.result strong{display:block;font-size:17px;line-height:1.55}.result .meta{font-size:14px;color:var(--muted);line-height:1.65;margin:11px 0 16px}.result a{font-size:14px;color:var(--accent);font-weight:700;text-decoration:underline;text-underline-offset:4px;margin-top:auto;align-self:start}.source{font-size:13px;color:var(--muted);line-height:1.7;margin-top:26px}.source a{color:var(--ink)}
     @media(max-width:980px){.topnote{display:none}.layout{grid-template-columns:250px minmax(0,1fr)}.left{padding:25px 16px}.right{padding:27px 26px 60px}.results{grid-template-columns:1fr}.feature h2{font-size:34px}}
-    @media(max-width:700px){.topbar{padding:18px;flex-wrap:wrap;gap:16px}.topnav{width:100%;overflow:auto}.pill{flex:1;padding:10px 12px;font-size:13px}.brandtext strong{font-size:18px}.brandtext small{font-size:9px}.layout{display:block}.left{position:static;min-height:0;max-height:none;border-right:0;border-bottom:1px solid var(--line);padding:23px 18px 18px}.left h1{font-size:24px;margin:12px 0 6px}.lead{font-size:14px;margin-bottom:15px}.sectionlabel{margin:19px 0 9px}.item-list{display:flex;overflow:auto;gap:7px}.item{white-space:nowrap;width:auto;border-color:#c3ad9d;padding:10px 13px}.item .num,.item .arrow{display:none}.item .name{font-size:14px}.leftbottom{display:none}.right{padding:24px 18px 55px}.feature{grid-template-columns:46px 1fr;gap:12px;margin-top:21px}.feature-icon{width:42px;height:42px;font-size:22px}.feature h2{font-size:29px}.feature p{font-size:15px}.tags{margin-top:12px}.tag{font-size:12px}.divider{margin:25px 0}.datahead strong{font-size:20px}.tabs{gap:5px}.tab{flex:1;padding:10px 5px;font-size:13px}.queryline input{font-size:16px}.primary{padding:11px 14px}.results{gap:10px}.result{padding:16px;min-height:0}.result strong{font-size:16px}}
+    @media(max-width:700px){.topbar{padding:18px;flex-wrap:wrap;gap:16px}.topnav{width:100%;overflow:auto}.pill{flex:1;padding:10px 12px;font-size:13px}.brandtext strong{font-size:18px}.brandtext small{font-size:9px}.layout{display:block}.left{position:static;min-height:0;max-height:none;border-right:0;border-bottom:1px solid var(--line);padding:23px 18px 18px}.left h1{font-size:24px;margin:12px 0 6px}.lead{font-size:14px;margin-bottom:15px}.sectionlabel{margin:19px 0 9px}.item-list{display:flex;overflow:auto;gap:7px}.item{white-space:nowrap;width:auto;border-color:#c3ad9d;padding:10px 13px}.item .num,.item .arrow{display:none}.item .name{font-size:14px}.leftbottom{display:none}.right{padding:24px 18px 55px}.feature{grid-template-columns:46px 1fr;gap:12px;margin-top:21px}.feature-icon{width:42px;height:42px;font-size:22px}.feature h2{font-size:29px}.feature p{font-size:15px}.tags{margin-top:12px}.tag{font-size:12px}.divider{margin:25px 0}.datahead strong{font-size:20px}.queryline input{font-size:16px}.primary{padding:11px 14px}.results{gap:10px}.result{padding:16px;min-height:0}.result strong{font-size:16px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
   </style>
 </head>
@@ -43,7 +42,7 @@
     <aside class="left">
       <span class="eyebrow">01 / EXPLORE</span>
       <h1>選擇探索方向</h1>
-      <p class="lead">選取產品類別或製程能力，右側即顯示相關的公開採購紀錄與廠商線索。</p>
+      <p class="lead">選取產品類別或製程能力，右側即顯示歐噴資料庫中的相關公開條目。</p>
       <label class="searchbox"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="filter" type="search" placeholder="搜尋產品、材料、技術..." aria-label="搜尋節點"></label>
       <div class="sectionlabel"><span id="listHeading">PRODUCT SPECTRUM</span><span id="count"></span></div>
       <div class="item-list" id="itemList"></div>
@@ -53,8 +52,7 @@
       <div class="righthead"><small>02 / MARKET INTELLIGENCE</small><span id="nodeNumber">01 — 13</span></div>
       <div class="feature"><div class="feature-icon" id="featureIcon">✳</div><h2 id="featureTitle"></h2><p id="featureDescription"></p><div class="tags" id="featureTags"></div></div>
       <div class="divider"></div>
-      <div class="datahead"><strong>公開資料探索</strong><small>LIVE SEARCH</small></div>
-      <div class="tabs" role="tablist" aria-label="資料來源"><button class="tab active" data-source="tender" role="tab">台灣標案</button><button class="tab" data-source="fda" role="tab">海外廠商</button><button class="tab" data-source="openfun" role="tab">歐噴資料</button></div>
+      <div class="datahead"><strong>歐噴資料庫查詢</strong><small>LIVE SEARCH</small></div>
       <p class="hint" id="sourceHint"></p>
       <form id="dataForm" class="queryline"><input id="dataQuery" type="search" aria-label="公開資料關鍵字" required><button class="primary" type="submit">搜尋 ↗</button></form>
       <div class="results" id="results"><p class="status">選擇關鍵字並搜尋公開資料；結果不預先編造。</p></div>
@@ -64,24 +62,24 @@
 </main>
 <script>
 const nodes=[
- {id:"vascular",name:"血管通路",en:"VASCULAR",glyph:"✧",type:"product",description:"導管、鞘管與通路相關的一次性醫療器材類別。可從管材、接頭、組裝與包裝能力尋找相鄰需求。",tags:["導管","鞘管","血管介入"],tw:"導管",us:"catheter"},
- {id:"dialysis",name:"透析迴路",en:"DIALYSIS",glyph:"◈",type:"product",description:"透析使用的體外管路、接頭與血液處理耗材。觀察醫院採購詞彙與海外核准持有人。",tags:["血液管路","透析","接頭"],tw:"透析管路",us:"dialysis"},
- {id:"drainage",name:"引流系統",en:"DRAINAGE",glyph:"⌁",type:"product",description:"體液引流、集液及相關管路系統，可交叉探索不同臨床科別的需求。",tags:["引流","集液","管路"],tw:"引流管",us:"drainage"},
- {id:"urology",name:"泌尿照護",en:"UROLOGY",glyph:"◌",type:"product",description:"泌尿科導管與照護耗材的產品類別，適合檢視醫院採購頻率及規格用語。",tags:["導尿","泌尿","袋體"],tw:"導尿管",us:"urinary catheter"},
- {id:"infusion",name:"輸液連接",en:"INFUSION",glyph:"＋",type:"product",description:"輸注用管路、轉接與流體連接器的應用範圍。",tags:["輸液","連接器","流體"],tw:"輸液管",us:"infusion"},
- {id:"sampling",name:"穿刺採樣",en:"SAMPLING",glyph:"↗",type:"product",description:"穿刺、取樣與檢體收集相關器材，可從針具及組件製造能力延伸探索。",tags:["穿刺","採樣","針具"],tw:"穿刺針",us:"biopsy needle"},
- {id:"extrusion",name:"精密押出",en:"EXTRUSION",glyph:"≋",type:"technology",description:"單腔、多腔或不同硬度組合的管材製程能力，可連結多種導管與流體產品。",tags:["多腔管","管材","公差"],tw:"醫療導管",us:"catheter"},
- {id:"molding",name:"精密射出",en:"MOLDING",glyph:"⬡",type:"technology",description:"醫療等級塑件、連接器與複合零組件的成型及組裝能力。",tags:["塑件","接頭","組裝"],tw:"醫療接頭",us:"connector"},
- {id:"forming",name:"導管成型",en:"FORMING",glyph:"⌇",type:"technology",description:"尖端成型、打孔、熱接合等導管二次加工能力。",tags:["尖端","熱接合","加工"],tw:"導管",us:"catheter"},
- {id:"coating",name:"表面處理",en:"SURFACE",glyph:"◒",type:"technology",description:"塗層與表面改質等方向，需依實際材料、驗證及適用法規評估可行性。",tags:["塗層","表面改質","驗證"],tw:"塗層導管",us:"coated catheter"},
- {id:"assembly",name:"潔淨組裝",en:"ASSEMBLY",glyph:"⊞",type:"technology",description:"零組件整合、潔淨環境組裝與一次性器材製造流程。",tags:["潔淨室","組裝","一次性"],tw:"醫療耗材",us:"medical device"},
- {id:"taiwan",name:"醫院採購",en:"TAIWAN",glyph:"◎",type:"market",description:"透過公開標案名稱尋找採購機關、公告類型與原始公告連結；搜尋結果不等於目前可投標案件。",tags:["台灣","標案","醫院"],tw:"醫院 導管",us:"catheter"},
- {id:"global",name:"海外夥伴",en:"GLOBAL",glyph:"✺",type:"market",description:"從 FDA 510(k) 公開紀錄初步辨識海外廠商與產品方向；合作資格仍需個別查證。",tags:["OEM","CDMO","代理"],tw:"醫療器材",us:"catheter"}
+ {id:"vascular",name:"血管通路",en:"VASCULAR",glyph:"✧",type:"product",description:"導管、鞘管與通路相關的一次性醫療器材類別。可從管材、接頭、組裝與包裝能力尋找相鄰需求。",tags:["導管","鞘管","血管介入"]},
+ {id:"dialysis",name:"透析迴路",en:"DIALYSIS",glyph:"◈",type:"product",description:"透析使用的體外管路、接頭與血液處理耗材。從歐噴公開索引尋找相關特材及資料來源。",tags:["血液管路","透析","接頭"]},
+ {id:"drainage",name:"引流系統",en:"DRAINAGE",glyph:"⌁",type:"product",description:"體液引流、集液及相關管路系統，可交叉探索不同臨床科別的需求。",tags:["引流","集液","管路"]},
+ {id:"urology",name:"泌尿照護",en:"UROLOGY",glyph:"◌",type:"product",description:"泌尿科導管與照護耗材的產品類別，可查詢相關特材條目及資料集。",tags:["導尿","泌尿","袋體"]},
+ {id:"infusion",name:"輸液連接",en:"INFUSION",glyph:"＋",type:"product",description:"輸注用管路、轉接與流體連接器的應用範圍。",tags:["輸液","連接器","流體"]},
+ {id:"sampling",name:"穿刺採樣",en:"SAMPLING",glyph:"↗",type:"product",description:"穿刺、取樣與檢體收集相關器材，可從針具及組件製造能力延伸探索。",tags:["穿刺","採樣","針具"]},
+ {id:"extrusion",name:"精密押出",en:"EXTRUSION",glyph:"≋",type:"technology",description:"單腔、多腔或不同硬度組合的管材製程能力，可連結多種導管與流體產品。",tags:["多腔管","管材","公差"]},
+ {id:"molding",name:"精密射出",en:"MOLDING",glyph:"⬡",type:"technology",description:"醫療等級塑件、連接器與複合零組件的成型及組裝能力。",tags:["塑件","接頭","組裝"]},
+ {id:"forming",name:"導管成型",en:"FORMING",glyph:"⌇",type:"technology",description:"尖端成型、打孔、熱接合等導管二次加工能力。",tags:["尖端","熱接合","加工"]},
+ {id:"coating",name:"表面處理",en:"SURFACE",glyph:"◒",type:"technology",description:"塗層與表面改質等方向，需依實際材料、驗證及適用法規評估可行性。",tags:["塗層","表面改質","驗證"]},
+ {id:"assembly",name:"潔淨組裝",en:"ASSEMBLY",glyph:"⊞",type:"technology",description:"零組件整合、潔淨環境組裝與一次性器材製造流程。",tags:["潔淨室","組裝","一次性"]},
+ {id:"taiwan",name:"醫院機構",en:"HOSPITALS",glyph:"◎",type:"market",description:"搜尋歐噴收錄的醫院與醫療機構資料；出現在索引中不代表有採購需求。",tags:["醫院","機構","台灣"]},
+ {id:"global",name:"醫材業者",en:"COMPANIES",glyph:"✺",type:"market",description:"搜尋歐噴收錄的醫療器材製造與流通業者線索；營業登記不代表合作意願。",tags:["醫療器材","製造","批發"]}
 ];
 const colors={product:"#a9c4c1",technology:"#e8aa76",market:"#b6b994"};
-let mode="product",selected=nodes[0],source="tender",page=1,lastQuery="",requestId=0;
+let mode="product",selected=nodes[0],requestId=0;
 const $=s=>document.querySelector(s),escapeHTML=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-function safeURL(url){try{const u=new URL(url,"https://pcc-api.openfun.app");return ["https:","http:"].includes(u.protocol)?u.href:"#"}catch{return "#"}}
+function safeURL(url){try{const u=new URL(url,"https://data.openfun.tw");return u.protocol==="https:"&&u.hostname==="data.openfun.tw"?u.href:"#"}catch{return "#"}}
 function openfunQuery(node){return ({vascular:"導管",dialysis:"透析",drainage:"引流",urology:"導尿",infusion:"輸液",sampling:"穿刺",extrusion:"導管",molding:"接頭",forming:"導管",coating:"塗層",assembly:"醫療器材",taiwan:"醫院",global:"醫療器材"})[node.id]||"醫療器材"}
 function modeNodes(){return mode==="product"?nodes.filter(n=>n.type==="product"):mode==="technology"?nodes.filter(n=>n.type==="technology"):nodes.filter(n=>n.type==="market")}
 function render(){
@@ -89,23 +87,18 @@ function render(){
   $("#listHeading").textContent=({product:"PRODUCT SPECTRUM",technology:"TECH CAPABILITIES",market:"MARKET SIGNALS"})[mode];
   $("#count").textContent=String(filtered.length).padStart(2,"0")+" / "+String(view.length).padStart(2,"0");
   $("#itemList").innerHTML=filtered.length?filtered.map((n,i)=>`<button class="item ${selected.id===n.id?"selected":""}" data-id="${n.id}"><span class="num">${String(i+1).padStart(2,"0")}</span><span class="name">${escapeHTML(n.name)}</span><span class="arrow">↗</span></button>`).join(""):'<div class="empty">找不到相符的節點</div>';
-  $("#nodeNumber").textContent=String(nodes.indexOf(selected)+1).padStart(2,"0")+" — 13";
+  $("#nodeNumber").textContent=String(nodes.indexOf(selected)+1).padStart(2,"0")+" — "+nodes.length;
   $("#featureIcon").textContent=selected.glyph;$("#featureIcon").style.background=colors[selected.type];
   $("#featureTitle").textContent=selected.name;$("#featureDescription").textContent=selected.description;
   $("#featureTags").innerHTML=selected.tags.map(t=>`<span class="tag">${escapeHTML(t)}</span>`).join("");
-  $("#sourceHint").textContent=source==="tender"?"依標案名稱查詢；公告階段、金額與日期請至原始頁面核對。":source==="fda"?"查詢美國 FDA 510(k) 核准紀錄的申請廠商；僅供尋找合作對象線索。":"直接搜尋歐噴的公開資料集與資料條目，包含健保特材及公司資料；查詢明細時請回到原始頁面核對。";
-  $("#dataQuery").placeholder=source==="tender"?"例如：導管、透析管路":source==="fda"?"例如：catheter":"例如：導管、醫療器材、醫院";
-  if(document.activeElement!==$("#dataQuery")) $("#dataQuery").value=source==="tender"?selected.tw:source==="fda"?selected.us:openfunQuery(selected);
-  $("#sourceFoot").innerHTML=source==="tender"?'資料來源：<a href="https://pcc-api.openfun.app/" target="_blank" rel="noopener noreferrer">OpenFun 政府採購公告 API</a>。搜尋回應由第三方提供，可能受服務限制。':source==="fda"?'資料來源：<a href="https://open.fda.gov/apis/device/510k/" target="_blank" rel="noopener noreferrer">openFDA 510(k)</a>。核准持有人不等於代理意願或 OEM 委託需求。':'資料來源：<a href="https://data.openfun.tw/" target="_blank" rel="noopener noreferrer">歐噴資料庫</a>公開搜尋索引。部分資料集的逐筆 API 需要授權；本頁顯示的是搜尋摘要。';
+  $("#sourceHint").textContent="搜尋歐噴資料庫的公開資料集與條目，包含健保特材、公司及醫療機構資料。";
+  $("#dataQuery").placeholder="例如：導管、醫療器材、醫院";
+  if(document.activeElement!==$("#dataQuery")) $("#dataQuery").value=openfunQuery(selected);
+  $("#sourceFoot").innerHTML='資料來源：<a href="https://data.openfun.tw/" target="_blank" rel="noopener noreferrer">歐噴資料庫</a>公開搜尋索引。逐筆資料 API 可能需授權；本頁僅顯示搜尋摘要，請至來源頁查證。';
 }
 function choose(id){selected=nodes.find(n=>n.id===id)||selected;requestId++;render();search($("#dataQuery").value.trim())}
 function setMode(next){mode=next;selected=modeNodes()[0];document.querySelectorAll(".pill[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));choose(selected.id)}
-function setSource(next){source=next;requestId++;document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("active",b.dataset.source===source));$("#results").innerHTML='<p class="status">正在準備查詢…</p>';render();search($("#dataQuery").value.trim())}
 async function getJSON(url,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const response=await fetch(url,{...options,signal:controller.signal});if(!response.ok)throw new Error("HTTP "+response.status);return await response.json()}finally{clearTimeout(timer)}}
-function tenderItems(data){return Array.isArray(data.records)?data.records:[]}
-function renderTender(data){const rows=tenderItems(data).slice(0,12),total=Number(data.total_records)||rows.length;
-  $("#results").innerHTML=`<p class="status">找到 ${total.toLocaleString()} 筆公告紀錄 · 第 ${page} 頁。日期與狀態以原始公告為準。</p>`+(rows.length?rows.map(r=>{const name=r.brief?.title||r.title||"未提供標案名稱",unit=r.unit_name||r.detail?.["機關資料:機關名稱"]||"機關未提供",type=r.brief?.type||r.type||"公告",date=r.date?String(r.date).replace(/^(\d{4})(\d{2})(\d{2})$/,"$1-$2-$3"):"日期未提供",u=r.url?safeURL(r.url):r.tender_api_url?safeURL(r.tender_api_url):"#";return `<article class="result"><strong>${escapeHTML(name)}</strong><p class="meta">${escapeHTML(unit)} · ${escapeHTML(type)} · ${escapeHTML(date)}</p>${u!=="#"?`<a href="${escapeHTML(u)}" target="_blank" rel="noopener noreferrer">查看公告 ↗</a>`:""}</article>`}).join(""):'<p class="status">此頁沒有相符的公告。可更換產品用語。</p>')+(Number(data.total_pages)>1?`<div class="pagination"><button type="button" data-page="-1" ${page<=1?"disabled":""}>← 上一頁</button><span>第 ${page} / ${data.total_pages} 頁</span><button type="button" data-page="1" ${page>=data.total_pages?"disabled":""}>下一頁 →</button></div>`:"")}
-function renderFDA(data){const rows=Array.isArray(data.results)?data.results:[];$("#results").innerHTML=`<p class="status">本次顯示 ${rows.length} 筆 FDA 公開紀錄；依 API 查詢結果排列。</p>`+(rows.length?rows.map(r=>`<article class="result"><strong>${escapeHTML(r.applicant||"廠商未提供")}</strong><p class="meta">${escapeHTML(r.device_name||"器材名稱未提供")} · ${escapeHTML(r.decision_date||"日期未提供")} · ${escapeHTML(r.k_number||"")}</p>${r.k_number?`<a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfpmn/pmn.cfm?ID=${encodeURIComponent(r.k_number)}" target="_blank" rel="noopener noreferrer">FDA 原始紀錄 ↗</a>`:""}</article>`).join(""):'<p class="status">沒有相符紀錄，請換用較通用的英文器材詞。</p>')}
 function renderOpenFun(data){
  const datasets=Array.isArray(data.datasets?.results)?data.datasets.results:[],groups=Array.isArray(data.entities?.groups)?data.entities.groups:[];
  const namedDatasets=datasets.filter(r=>String(r.title||"").toLowerCase().includes(String(data.q||"").toLowerCase()));
@@ -117,17 +110,21 @@ function renderOpenFun(data){
  if(!entityCards.length&&!namedDatasets.length)html+='<p class="status">沒有找到名稱相符的條目或資料集；可換較短的關鍵字，例如「導管」或「透析」。</p>';
  $("#results").innerHTML=html;
 }
-async function search(query,requestedPage=1){const seq=++requestId;page=requestedPage;lastQuery=query;$("#results").innerHTML='<p class="status">正在讀取公開資料…</p>';
- try{let data;if(source==="tender"){data=await getJSON("https://pcc-api.openfun.app/api/searchbytitle?"+new URLSearchParams({query,page:String(page)}));if(seq===requestId)renderTender(data)}
- else if(source==="fda"){const clean=query.replace(/["\\]/g," ").trim();data=await getJSON("https://api.fda.gov/device/510k.json?"+new URLSearchParams({search:`device_name:"${clean}"`,limit:"12"}));if(seq===requestId)renderFDA(data)}
- else{data=await getJSON("https://data.openfun.tw/api/v1/search?"+new URLSearchParams({q:query,per_dataset:"3",max_datasets:"10"}));if(seq===requestId)renderOpenFun(data)}}
- catch(error){if(seq===requestId)$("#results").innerHTML=`<p class="status">目前無法取得資料（${escapeHTML(error.message)}）。可稍後重試或開啟上方來源網站直接查詢。</p>`}}
-document.addEventListener("click",e=>{const node=e.target.closest("[data-id]");if(node){choose(node.dataset.id);return}const pg=e.target.closest("[data-page]");if(pg)search(lastQuery,Math.max(1,page+Number(pg.dataset.page)))});
+async function search(query){
+ const seq=++requestId;
+ $("#results").innerHTML='<p class="status">正在讀取歐噴資料…</p>';
+ try{
+  const data=await getJSON("https://data.openfun.tw/api/v1/search?"+new URLSearchParams({q:query,per_dataset:"3",max_datasets:"10"}));
+  if(seq===requestId)renderOpenFun(data);
+ }catch(error){
+  if(seq===requestId)$("#results").innerHTML=`<p class="status">歐噴資料庫目前無法回傳結果（${escapeHTML(error.message)}）。請稍後重試。</p>`;
+ }
+}
+document.addEventListener("click",e=>{const node=e.target.closest("[data-id]");if(node)choose(node.dataset.id)});
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
-document.querySelectorAll("[data-source]").forEach(b=>b.addEventListener("click",()=>setSource(b.dataset.source)));
 $("#filter").addEventListener("input",render);
 $("#dataForm").addEventListener("submit",e=>{e.preventDefault();const q=$("#dataQuery").value.trim();if(q)search(q)});
-render();search(selected.tw);
+render();search(openfunQuery(selected));
 </script>
 </body>
 </html>
