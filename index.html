@@ -103,7 +103,7 @@ function renderOpenFun(data){
  const datasets=Array.isArray(data.datasets?.results)?data.datasets.results:[],groups=Array.isArray(data.entities?.groups)?data.entities.groups:[];
  const namedDatasets=datasets.filter(r=>String(r.title||"").toLowerCase().includes(String(data.q||"").toLowerCase()));
  const medicalGroups=groups.filter(g=>/健保特材|特材品項|醫療院所|醫療機構|醫院|稅籍.*登記|公司登記|機關代碼/.test(String(g.dataset_title||"")));
- const entityCards=medicalGroups.flatMap(g=>(Array.isArray(g.entities)?g.entities.slice(0,3):[]).map(e=>({group:g,name:e.name,url:e.url}))).slice(0,12);
+ const entityCards=medicalGroups.flatMap(g=>(Array.isArray(g.entities)?g.entities:[]).filter(e=>selected.id!=="taiwan"||!/停車場|公車站/.test(String(e.name||""))).slice(0,3).map(e=>({group:g,name:e.name,url:e.url}))).slice(0,12);
  const count=Number(data.entities?.total)||0,datasetCount=Number(data.datasets?.total)||0;
  let html=`<p class="status">歐噴全域索引有 ${count.toLocaleString()} 筆條目、${datasetCount.toLocaleString()} 份資料集命中關鍵字；下方只列醫療相關來源的摘要，不代表銷售量或採購需求。</p>`;
  if(entityCards.length){html+='<p class="status section-title">相關資料條目</p>'+entityCards.map(r=>`<article class="result"><strong>${escapeHTML(r.name||"未提供名稱")}</strong><p class="meta">${escapeHTML(r.group.dataset_title||"資料來源未提供")} · 此資料集相符 ${Number(r.group.total||0).toLocaleString()} 筆</p><a href="${escapeHTML(safeURL(r.url||r.group.dataset_url))}" target="_blank" rel="noopener noreferrer">查看歐噴條目 ↗</a></article>`).join("")}
