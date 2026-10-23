@@ -29,6 +29,8 @@
     @media(max-width:980px){.topnote{display:none}.layout{grid-template-columns:250px minmax(0,1fr)}.left{padding:25px 16px}.right{padding:27px 26px 60px}.results{grid-template-columns:1fr}.feature h2{font-size:34px}}
     @media(max-width:700px){.topbar{padding:18px;flex-wrap:wrap;gap:16px}.topnav{width:100%;overflow:auto}.pill{flex:1;padding:10px 12px;font-size:13px}.brandtext strong{font-size:18px}.brandtext small{font-size:9px}.layout{display:block}.left{position:static;min-height:0;max-height:none;border-right:0;border-bottom:1px solid var(--line);padding:23px 18px 18px}.left h1{font-size:24px;margin:12px 0 6px}.lead{font-size:14px;margin-bottom:15px}.sectionlabel{margin:19px 0 9px}.item-list{display:flex;overflow:auto;gap:7px}.item{white-space:nowrap;width:auto;border-color:#c3ad9d;padding:10px 13px}.item .num,.item .arrow{display:none}.item .name{font-size:14px}.leftbottom{display:none}.right{padding:24px 18px 55px}.feature{grid-template-columns:46px 1fr;gap:12px;margin-top:21px}.feature-icon{width:42px;height:42px;font-size:22px}.feature h2{font-size:29px}.feature p{font-size:15px}.tags{margin-top:12px}.tag{font-size:12px}.divider{margin:25px 0}.datahead strong{font-size:20px}.queryline input{font-size:16px}.primary{padding:11px 14px}.results{gap:10px}.result{padding:16px;min-height:0}.result strong{font-size:16px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+    .authbox{margin-top:17px;padding:17px 19px;border:1px solid var(--line);background:rgba(255,250,244,.55)}.authbox label{display:block;font-size:15px;font-weight:700;margin-bottom:9px}.authline,.record-search,.record-actions,.pager{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.authline input,.record-search input{flex:1;min-width:200px;border:1px solid #aa998c;background:#fffaf3;padding:11px 13px;font-size:16px}.authline button,.record-search button,.record-actions button,.pager button{border:1px solid var(--ink);background:var(--cream);color:var(--ink);font-size:14px;font-weight:700;padding:10px 14px}.authline button:hover,.record-search button:hover,.record-actions button:hover,.pager button:hover:not(:disabled){background:var(--ink);color:var(--cream)}.authline button:disabled,.pager button:disabled{opacity:.45;cursor:not-allowed}.authbox p{font-size:13px;line-height:1.6;color:var(--muted);margin:10px 0 0}.authbox .authstatus{font-size:14px;color:var(--ink);font-weight:700}.record-actions{margin-top:auto}.record-actions a{margin:0}.records-panel{margin-top:24px;border-top:1px solid var(--line);padding-top:22px}.records-panel h3{font-size:21px;margin:0 0 9px}.record-search{margin:15px 0}.record-list{display:grid;gap:11px}.record-row{border:1px solid #cfbbac;background:#fffaf3;padding:15px 17px;overflow-wrap:anywhere}.record-row dl{display:grid;grid-template-columns:minmax(110px,190px) minmax(0,1fr);gap:7px 16px;margin:0}.record-row dt{font-size:14px;color:var(--muted)}.record-row dd{font-size:15px;margin:0;white-space:pre-wrap}.pager{margin-top:15px;font-size:14px}
+    @media(max-width:700px){.authline input{flex-basis:100%}.record-row dl{grid-template-columns:1fr;gap:2px}.record-row dd{margin-bottom:9px}}
   </style>
 </head>
 <body>
@@ -55,7 +57,9 @@
       <div class="datahead"><strong>歐噴資料庫查詢</strong><small>LIVE SEARCH</small></div>
       <p class="hint" id="sourceHint"></p>
       <form id="dataForm" class="queryline"><input id="dataQuery" type="search" aria-label="公開資料關鍵字" required><button class="primary" type="submit">搜尋 ↗</button></form>
+      <div class="authbox"><label for="apiKey">歐噴 API Token（逐筆查詢）</label><div class="authline"><input id="apiKey" type="password" placeholder="貼上歐噴 Token；公開搜尋可留空" autocomplete="off" spellcheck="false" aria-describedby="authStatus"><button id="useKey" type="button">啟用</button><button id="clearKey" type="button" disabled>清除</button></div><p class="authstatus" id="authStatus" role="status">尚未啟用；可直接搜尋公開索引。</p><p>金鑰只存在此分頁的記憶體，關閉或重新整理即清除；僅送往 data.openfun.tw。公開頁面請勿使用共用的高權限金鑰。<a href="https://data.openfun.tw/user" target="_blank" rel="noopener noreferrer">取得 Token ↗</a></p></div>
       <div class="results" id="results"><p class="status">選擇關鍵字並搜尋公開資料；結果不預先編造。</p></div>
+      <section class="records-panel" id="recordsPanel" hidden aria-live="polite"></section>
       <div class="source" id="sourceFoot"></div>
     </section>
   </div>
@@ -77,7 +81,7 @@ const nodes=[
  {id:"global",name:"醫材業者",en:"COMPANIES",glyph:"✺",type:"market",description:"搜尋歐噴收錄的醫療器材製造與流通業者線索；營業登記不代表合作意願。",tags:["醫療器材","製造","批發"]}
 ];
 const colors={product:"#a9c4c1",technology:"#e8aa76",market:"#b6b994"};
-let mode="product",selected=nodes[0],requestId=0;
+let mode="product",selected=nodes[0],requestId=0,recordsRequestId=0,apiToken="",activeDataset=null,recordPage=1,recordQuery="";
 const $=s=>document.querySelector(s),escapeHTML=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 function safeURL(url){try{const u=new URL(url,"https://data.openfun.tw");return u.protocol==="https:"&&u.hostname==="data.openfun.tw"?u.href:"#"}catch{return "#"}}
 function openfunQuery(node){return ({vascular:"導管",dialysis:"透析",drainage:"引流",urology:"導尿",infusion:"輸液",sampling:"穿刺",extrusion:"導管",molding:"接頭",forming:"導管",coating:"塗層",assembly:"醫療器材",taiwan:"醫院",global:"醫療器材"})[node.id]||"醫療器材"}
@@ -94,34 +98,56 @@ function render(){
   $("#sourceHint").textContent="搜尋歐噴資料庫的公開資料集與條目，包含健保特材、公司及醫療機構資料。";
   $("#dataQuery").placeholder="例如：導管、醫療器材、醫院";
   if(document.activeElement!==$("#dataQuery")) $("#dataQuery").value=openfunQuery(selected);
-  $("#sourceFoot").innerHTML='資料來源：<a href="https://data.openfun.tw/" target="_blank" rel="noopener noreferrer">歐噴資料庫</a>公開搜尋索引。逐筆資料 API 可能需授權；本頁僅顯示搜尋摘要，請至來源頁查證。';
+  $("#sourceFoot").innerHTML='資料來源：<a href="https://data.openfun.tw/" target="_blank" rel="noopener noreferrer">歐噴資料庫</a>。索引與逐筆紀錄皆應核對原始資料集的涵蓋期間及欄位定義。';
 }
-function choose(id){selected=nodes.find(n=>n.id===id)||selected;requestId++;render();search($("#dataQuery").value.trim())}
+function choose(id){selected=nodes.find(n=>n.id===id)||selected;requestId++;recordsRequestId++;$("#recordsPanel").hidden=true;render();search($("#dataQuery").value.trim())}
 function setMode(next){mode=next;selected=modeNodes()[0];document.querySelectorAll(".pill[data-mode]").forEach(b=>b.classList.toggle("active",b.dataset.mode===mode));choose(selected.id)}
-async function getJSON(url,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const response=await fetch(url,{...options,signal:controller.signal});if(!response.ok)throw new Error("HTTP "+response.status);return await response.json()}finally{clearTimeout(timer)}}
+async function getJSON(url,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);try{const response=await fetch(url,{...options,signal:controller.signal,referrerPolicy:"no-referrer",cache:"no-store"});if(!response.ok){if(response.status===401||response.status===403)throw new Error("授權失敗（"+response.status+"），請確認 Token 是否有效及資料集權限");throw new Error("HTTP "+response.status)}return await response.json()}finally{clearTimeout(timer)}}
+function authHeaders(){return apiToken?{Authorization:"Bearer "+apiToken}:{}}
+function datasetButton(slug,title){return slug?`<button type="button" data-record-slug="${escapeHTML(encodeURIComponent(slug))}" data-record-title="${escapeHTML(title||slug)}">查看逐筆資料 ↗</button>`:""}
 function renderOpenFun(data){
  const datasets=Array.isArray(data.datasets?.results)?data.datasets.results:[],groups=Array.isArray(data.entities?.groups)?data.entities.groups:[];
- const namedDatasets=datasets.filter(r=>String(r.title||"").toLowerCase().includes(String(data.q||"").toLowerCase()));
  const medicalGroups=groups.filter(g=>/健保特材|特材品項|醫療院所|醫療機構|醫院|稅籍.*登記|公司登記|機關代碼/.test(String(g.dataset_title||"")));
  const entityCards=medicalGroups.flatMap(g=>(Array.isArray(g.entities)?g.entities:[]).filter(e=>selected.id!=="taiwan"||!/停車場|公車站/.test(String(e.name||""))).slice(0,3).map(e=>({group:g,name:e.name,url:e.url}))).slice(0,12);
  const count=Number(data.entities?.total)||0,datasetCount=Number(data.datasets?.total)||0;
  let html=`<p class="status">歐噴全域索引有 ${count.toLocaleString()} 筆條目、${datasetCount.toLocaleString()} 份資料集命中關鍵字；下方只列醫療相關來源的摘要，不代表銷售量或採購需求。</p>`;
- if(entityCards.length){html+='<p class="status section-title">相關資料條目</p>'+entityCards.map(r=>`<article class="result"><strong>${escapeHTML(r.name||"未提供名稱")}</strong><p class="meta">${escapeHTML(r.group.dataset_title||"資料來源未提供")} · 此資料集相符 ${Number(r.group.total||0).toLocaleString()} 筆</p><a href="${escapeHTML(safeURL(r.url||r.group.dataset_url))}" target="_blank" rel="noopener noreferrer">查看歐噴條目 ↗</a></article>`).join("")}
- if(namedDatasets.length){html+='<p class="status section-title">名稱相符的資料集</p>'+namedDatasets.slice(0,6).map(r=>`<article class="result"><strong>${escapeHTML(r.title||r.slug||"資料集")}</strong><p class="meta">${escapeHTML((r.description||r.slug||"").slice(0,180))}${(r.description||"").length>180?"…":""}</p><a href="${escapeHTML(safeURL(r.url||"https://data.openfun.tw/datasets/"+encodeURIComponent(r.slug||"")))}" target="_blank" rel="noopener noreferrer">查看資料集與來源 ↗</a></article>`).join("")}
- if(!entityCards.length&&!namedDatasets.length)html+='<p class="status">沒有找到名稱相符的條目或資料集；可換較短的關鍵字，例如「導管」或「透析」。</p>';
+ if(entityCards.length){html+='<p class="status section-title">相關資料條目</p>'+entityCards.map(r=>`<article class="result"><strong>${escapeHTML(r.name||"未提供名稱")}</strong><p class="meta">${escapeHTML(r.group.dataset_title||"資料來源未提供")} · 此資料集相符 ${Number(r.group.total||0).toLocaleString()} 筆</p><div class="record-actions"><a href="${escapeHTML(safeURL(r.url||r.group.dataset_url))}" target="_blank" rel="noopener noreferrer">查看歐噴條目 ↗</a>${datasetButton(r.group.dataset_slug||r.group.slug,r.group.dataset_title)}</div></article>`).join("")}
+ if(datasets.length){html+='<p class="status section-title">相關資料集</p>'+datasets.slice(0,10).map(r=>`<article class="result"><strong>${escapeHTML(r.title||r.slug||"資料集")}</strong><p class="meta">${escapeHTML((r.description||r.slug||"").slice(0,180))}${(r.description||"").length>180?"…":""}</p><div class="record-actions"><a href="${escapeHTML(safeURL(r.url||"https://data.openfun.tw/datasets/"+encodeURIComponent(r.slug||"")))}" target="_blank" rel="noopener noreferrer">查看資料集與來源 ↗</a>${datasetButton(r.slug,r.title)}</div></article>`).join("")}
+ if(!entityCards.length&&!datasets.length)html+='<p class="status">沒有找到相符的條目或資料集；可換較短的關鍵字，例如「導管」或「透析」。</p>';
  $("#results").innerHTML=html;
 }
 async function search(query){
  const seq=++requestId;
+ recordsRequestId++;$("#recordsPanel").hidden=true;
  $("#results").innerHTML='<p class="status">正在讀取歐噴資料…</p>';
  try{
-  const data=await getJSON("https://data.openfun.tw/api/v1/search?"+new URLSearchParams({q:query,per_dataset:"3",max_datasets:"10"}));
+  const data=await getJSON("https://data.openfun.tw/api/v1/search?"+new URLSearchParams({q:query,per_dataset:"3",max_datasets:"10"}),{headers:authHeaders()});
   if(seq===requestId)renderOpenFun(data);
  }catch(error){
   if(seq===requestId)$("#results").innerHTML=`<p class="status">歐噴資料庫目前無法回傳結果（${escapeHTML(error.message)}）。請稍後重試。</p>`;
  }
 }
+function recordValue(value){if(value===null||value===undefined)return "—";return typeof value==="object"?JSON.stringify(value):String(value)}
+async function loadRecords(){
+ const seq=++recordsRequestId,panel=$("#recordsPanel");panel.hidden=false;
+ panel.innerHTML=`<h3>${escapeHTML(activeDataset.title)}</h3><p class="status">正在查詢第 ${recordPage} 頁逐筆資料…</p>`;
+ const params=new URLSearchParams({page:String(recordPage),per_page:"10"});if(recordQuery)params.set("q",recordQuery);
+ try{
+  const data=await getJSON("https://data.openfun.tw/api/v1/datasets/"+encodeURIComponent(activeDataset.slug)+"/records?"+params,{headers:authHeaders()});
+  if(seq!==recordsRequestId)return;
+  const rows=Array.isArray(data.records)?data.records:[],total=Number(data.total)||0;
+  panel.innerHTML=`<h3>${escapeHTML(activeDataset.title)}｜逐筆資料</h3><p class="status">歐噴回傳 ${total.toLocaleString()} 筆符合條件的紀錄；目前顯示第 ${Number(data.page)||recordPage} 頁。數量為資料集紀錄數，並非銷售量。</p><form class="record-search" id="recordForm"><input id="recordQuery" type="search" value="${escapeHTML(recordQuery)}" placeholder="在此資料集內搜尋（可留空）" aria-label="資料集內搜尋"><button type="submit">查詢此資料集</button></form><div class="record-list">${rows.length?rows.map(row=>`<article class="record-row"><dl>${Object.entries(row).map(([key,value])=>`<dt>${escapeHTML(key)}</dt><dd>${escapeHTML(recordValue(value))}</dd>`).join("")}</dl></article>`).join(""):'<p class="status">這個條件沒有逐筆資料。清空資料集內搜尋再試。</p>'}</div><div class="pager"><button type="button" data-record-page="prev" ${recordPage<=1?"disabled":""}>上一頁</button><span>第 ${recordPage} 頁</span><button type="button" data-record-page="next" ${recordPage*10>=total?"disabled":""}>下一頁</button></div>`;
+ }catch(error){
+  if(seq!==recordsRequestId)return;
+  panel.innerHTML=`<h3>${escapeHTML(activeDataset.title)}｜逐筆資料</h3><p class="status">${escapeHTML(error.message)}。${error instanceof TypeError?"瀏覽器可能封鎖跨網域授權請求；可開啟歐噴資料集頁面查閱。":"請確認資料集權限或稍後重試。"}</p>`;
+ }
+}
 document.addEventListener("click",e=>{const node=e.target.closest("[data-id]");if(node)choose(node.dataset.id)});
+document.addEventListener("click",e=>{const button=e.target.closest("[data-record-slug]");if(!button)return;if(!apiToken){$("#authStatus").textContent="請先貼上 Token 並按「啟用」，才能查詢逐筆資料。";$("#apiKey").focus();return}activeDataset={slug:decodeURIComponent(button.dataset.recordSlug),title:button.dataset.recordTitle};recordPage=1;recordQuery="";loadRecords();$("#recordsPanel").scrollIntoView({behavior:"smooth",block:"start"})});
+document.addEventListener("click",e=>{const button=e.target.closest("[data-record-page]");if(!button||!activeDataset)return;recordPage+=button.dataset.recordPage==="next"?1:-1;loadRecords()});
+document.addEventListener("submit",e=>{if(e.target.id!=="recordForm")return;e.preventDefault();recordQuery=$("#recordQuery").value.trim();recordPage=1;loadRecords()});
+$("#useKey").addEventListener("click",()=>{const value=$("#apiKey").value.trim().replace(/^Bearer\s+/i,"");if(!value){$("#authStatus").textContent="請輸入歐噴 API Token。";return}apiToken=value;$("#apiKey").value="";$("#clearKey").disabled=false;$("#authStatus").textContent="Token 已設定於本分頁；尚待逐筆查詢驗證。";search($("#dataQuery").value.trim())});
+$("#clearKey").addEventListener("click",()=>{apiToken="";$("#apiKey").value="";$("#clearKey").disabled=true;$("#authStatus").textContent="Token 已清除；目前只搜尋公開索引。";recordsRequestId++;activeDataset=null;$("#recordsPanel").innerHTML="";$("#recordsPanel").hidden=true;search($("#dataQuery").value.trim())});
 document.querySelectorAll("[data-mode]").forEach(b=>b.addEventListener("click",()=>setMode(b.dataset.mode)));
 $("#filter").addEventListener("input",render);
 $("#dataForm").addEventListener("submit",e=>{e.preventDefault();const q=$("#dataQuery").value.trim();if(q)search(q)});
