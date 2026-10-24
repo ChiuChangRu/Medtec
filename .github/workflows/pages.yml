@@ -27,6 +27,7 @@ jobs:
           mkdir -p _site
           cp index.html _site/index.html
           cp island.html _site/island.html
+          cp island-model.js island-scene.js rounded-box.js town-preview.jpg THREE-LICENSE.txt _site/
       - name: Upload site
         uses: actions/upload-pages-artifact@v4
         with:
