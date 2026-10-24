@@ -17,7 +17,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  const cyl=(x,y,z,r,h,c=C.white)=>p('cyl',x,y,z,r*2,h,r*2,c);
  const ball=(x,y,z,r,c=C.green,s=[1,1,1])=>p('ball',x,y,z,r*2*s[0],r*2*s[1],r*2*s[2],c);
  function beam(a,b,width,c,kind='cyl'){const A=new T.Vector3(...a),B=new T.Vector3(...b),v=B.clone().sub(A),q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),v.clone().normalize()),e=new T.Euler().setFromQuaternion(q);parts.push({kind,pos:A.add(B).multiplyScalar(.5).toArray(),scale:[width,v.length(),width],color:c,rot:[e.x,e.y,e.z],owner})}
- const TOP=.66,R=2.18,SPACE=1.20;
+ const TOP=.66,R=2.18,SPACE=1.40;
  definitions.forEach((d,i)=>tileCenters.push({i,x:Math.sqrt(3)*R*SPACE*(d.q+d.r/2),z:1.5*R*SPACE*d.r}));
  const cells=new Map(definitions.map((d,i)=>[d.q+','+d.r,i])),edgeSteps=[[0,1],[-1,1],[-1,0],[0,-1],[1,-1],[1,0]];
  function neighbor(i,edge){const d=definitions[i],step=edgeSteps[edge];return cells.get((d.q+step[0])+','+(d.r+step[1]))}
@@ -145,13 +145,20 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
 
  tileCenters.forEach(courtyard);
  tileCenters.forEach(c=>roofEmblem(c.i));
- // Short canal crossings are walking passages; they do not encode content relationships.
+ // Timber boardwalks provide walking passages, independently of content relationships.
  const routes=[];owner=-1;
- tileCenters.forEach(a=>edgeSteps.forEach((_,edge)=>{const other=neighbor(a.i,edge);if(other===undefined||other<=a.i)return;const b=tileCenters[other],len=Math.hypot(b.x-a.x,b.z-a.z),dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,ry=Math.atan2(dx,dz),start=[a.x+dx*1.68,a.z+dz*1.68],end=[b.x-dx*1.68,b.z-dz*1.68];routes.push({a:a.i,b:other,kind:'walkway'});box((a.x+b.x)/2,TOP-.05,(a.z+b.z)/2,.70,.10,len-3.36,0xe3ddd0,ry);for(const side of [-1,1]){const nx=dz*.34*side,nz=-dx*.34*side;fence(start[0]+nx,start[1]+nz,end[0]+nx,end[1]+nz,0)}}));
+ function boardwalk(a,b){const len=Math.hypot(b.x-a.x,b.z-a.z),dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,ry=Math.atan2(dx,dz),length=len-3.36,cx=(a.x+b.x)/2,cz=(a.z+b.z)/2,n=Math.ceil(length/.11),pitch=length/n;
+  routes.push({a:a.i,b:b.i,kind:'walkway',material:'timber',length,planks:n});
+  const at=(along,across)=>[cx+dx*along+dz*across,cz+dz*along-dx*across];
+  for(const side of [-1,1]){const[x,z]=at(0,side*.25);box(x,TOP-.105,z,.075,.10,length,0x8f684b,ry)}
+  for(let j=0;j<n;j++){const[x,z]=at(-length/2+(j+.5)*pitch,0);box(x,TOP-.035,z,.70,.07,pitch*.94,[0xb58a60,0xc19a70,0xae8059,0xc7a27c][j%4],ry);for(const side of [-1,1]){const[nx,nz]=at(-length/2+(j+.5)*pitch,side*.26);cyl(nx,TOP+.004,nz,.008,.006,0x76634e)}}
+  for(const side of [-1,1]){const count=Math.ceil(length/.40);for(let j=0;j<=count;j++){const[x,z]=at(-length/2+j*length/count,side*.34);box(x,TOP+.20,z,.052,.42,.052,0x9b7452);box(x,TOP+.42,z,.075,.04,.075,0xd0ae86)}for(const y of [.20,.39]){const A=at(-length/2,side*.34),B=at(length/2,side*.34);beam([A[0],TOP+y,A[1]],[B[0],TOP+y,B[1]],.042,0xbc946a)}for(const end of [-1,1]){const[x,z]=at(end*length*.34,side*.26);box(x,TOP-.35,z,.08,.72,.08,0x8b694d)}}
+ }
+ tileCenters.forEach(a=>edgeSteps.forEach((_,edge)=>{const other=neighbor(a.i,edge);if(other===undefined||other<=a.i)return;boardwalk(a,tileCenters[other])}));
 
  // A continuous faceted lake basin surrounds the navigable districts.
  function lakeBasin(){
-  owner=-1;const segments=64,scales=[1,1.045,1.16,1.42,1.85,2.6,4],levels=[.015,.17,.68,3.2,10.2,6.4,4.8],rings=[],triangles=[],groups=new Map(),palette=[0xc1c9a4,0xa5b68e,0x99ad85,0x8fa47e,0xa6b68c,0x93a980],rx=20.2,rz=18.7;
+  owner=-1;const segments=64,scales=[1,1.045,1.16,1.42,1.85,2.6,4],levels=[.015,.17,.68,3.2,10.2,6.4,4.8],rings=[],triangles=[],groups=new Map(),palette=[0xc1c9a4,0xa5b68e,0x99ad85,0x8fa47e,0xa6b68c,0x93a980],rx=23.8,rz=22.1;
   for(let j=0;j<scales.length;j++){rings[j]=[];for(let k=0;k<segments;k++){const a=k/segments*Math.PI*2,shore=1+.050*Math.sin(a*3+.3)+.030*Math.cos(a*7),ridge=Math.sin(a*5+.2)*.8+Math.cos(a*9)*.45+Math.sin(a*3)*.65,y=levels[j]+(j>1?ridge*(j-1)*.32:Math.sin(a*5)*.025);rings[j].push([Math.cos(a)*rx*scales[j]*shore,y,Math.sin(a)*rz*scales[j]*shore])}}
   function triangle(A,B,C,j,k){if((B[2]-A[2])*(C[0]-A[0])-(B[0]-A[0])*(C[2]-A[2])<0)[B,C]=[C,B];const color=j===0?palette[0]:palette[1+(k+j*3)%5];if(!groups.has(color))groups.set(color,[]);groups.get(color).push(...A,...B,...C);triangles.push({A,B,C,band:j})}
   for(let j=0;j<rings.length-1;j++)for(let k=0;k<segments;k++){const next=(k+1)%segments,A=rings[j][k],B=rings[j+1][k],C=rings[j][next],D=rings[j+1][next];triangle(A,B,C,j,k);triangle(B,D,C,j,k+1)}
@@ -159,8 +166,8 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
   function pine(x,y,z,s){cyl(x,y+.30*s,z,.035*s,.60*s,C.brown);p('cone',x,y+.68*s,z,.56*s,1.05*s,.56*s,0x608767);p('cone',x,y+1.02*s,z,.38*s,.88*s,.38*s,0x7d9c77)}
   let forestCount=0;for(const t of triangles)for(let grove=0;grove<3;grove++){if(t.band<1||t.band>4||rand()>.55)continue;let u=.18+rand()*.48,v=.18+rand()*.35;if(u+v>.88)v=.88-u;const w=1-u-v,x=t.A[0]*u+t.B[0]*v+t.C[0]*w,y=t.A[1]*u+t.B[1]*v+t.C[1]*w,z=t.A[2]*u+t.B[2]*v+t.C[2]*w,s=.65+rand()*.65;if(rand()<.65)pine(x,y,z,s);else tree(x,z,s,false,y,true);forestCount++}
   for(let h=0;h<14;h++){const k=(h*7+11)%segments,A=rings[1][k],B=rings[2][k],x=A[0]*.5+B[0]*.5,z=A[2]*.5+B[2]*.5,y=A[1]*.5+B[1]*.5;box(x,y+.22,z,.44,.44,.38,0xf0e7cf);p('roof',x,y+.53,z,.72,.26,.64,C.coral,Math.PI/4);box(x,y+.26,z+.20,.15,.17,.025,C.glass)}
-  let cloudGroups=0;for(let c=0;c<12;c++){const a=c/12*Math.PI*2+.15;if(Math.cos(a)*.47+Math.sin(a)*.65>.05)continue;cloudGroups++;const x=Math.cos(a)*32,z=Math.sin(a)*30,y=11+Math.sin(a*3)*1.4;for(let b=0;b<6;b++){const f=b/5-.5;ball(x+f*3.6,y+Math.sin(b*1.4)*.28,z+Math.cos(b*1.8)*.48,.88+(b%3)*.14,0xf1f0e5,[1.25,.72,.90])}}
-  return{shoreline:rings[0],overview:Array.from({length:12},(_,i)=>({x:Math.cos(i/12*Math.PI*2)*18.9,z:Math.sin(i/12*Math.PI*2)*17.5})),forestCount,terrainTriangles:triangles.length,cloudGroups};
+  let cloudGroups=0;for(let c=0;c<12;c++){const a=c/12*Math.PI*2+.15;if(Math.cos(a)*.47+Math.sin(a)*.65>.05)continue;cloudGroups++;const x=Math.cos(a)*38,z=Math.sin(a)*35,y=11+Math.sin(a*3)*1.4;for(let b=0;b<6;b++){const f=b/5-.5;ball(x+f*3.6,y+Math.sin(b*1.4)*.28,z+Math.cos(b*1.8)*.48,.88+(b%3)*.14,0xf1f0e5,[1.25,.72,.90])}}
+  return{rx,rz,shoreline:rings[0],overview:Array.from({length:12},(_,i)=>({x:Math.cos(i/12*Math.PI*2)*22.3,z:Math.sin(i/12*Math.PI*2)*20.65})),forestCount,terrainTriangles:triangles.length,cloudGroups};
  }
  const landscape=lakeBasin();
 
@@ -179,7 +186,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  const ap=(kind,pos,scale,color,rotation,light)=>vehiclePart(plane,kind,pos,scale,color,rotation,light);
  ap('ball',[0,0,0],[.43,.43,2.7],0xf3eee2);ap('ball',[0,.10,1.02],[.32,.16,.35],0x567d87);ap('round',[0,-.03,-.12],[2.72,.075,.44],0xe5e4db,[0,.10,0]);ap('round',[0,.06,-1.02],[1.08,.065,.34],0xd3764d);ap('round',[0,.35,-1.06],[.085,.63,.48],0xd3764d,[.18,0,0]);
  for(const side of [-1,1]){ap('ball',[side*.68,-.19,.04],[.25,.25,.59],0xe6e7e0);ap('ball',[side*.68,-.19,.30],[.16,.16,.025],0x3d5b62);ap('ball',[side*1.36,-.01,-.24],[.065,.065,.065],side<0?0xd7765c:0x79b49a,undefined,true);for(let w=0;w<5;w++)ap('round',[side*.207,.07,.64-w*.22],[.019,.060,.080],0x739a9d)}
- function updateTransport(time){const a=time*.021+.75;ship.position.set(Math.sin(a)*17.0,-.01,Math.cos(a)*15.7);ship.rotation.y=Math.atan2(Math.cos(a)*17.0,-Math.sin(a)*15.7);ship.rotation.z=Math.sin(time*.8)*.012;
+ function updateTransport(time){const a=time*.021+.75;ship.position.set(Math.sin(a)*20.5,-.01,Math.cos(a)*18.9);ship.rotation.y=Math.atan2(Math.cos(a)*20.5,-Math.sin(a)*18.9);ship.rotation.z=Math.sin(time*.8)*.012;
   const u=((time+31)%112)/112;plane.visible=u<.83;const t=u/.83;plane.position.set(-31+t*62,10.4+Math.sin(t*Math.PI)*1.1,-12+t*16);plane.rotation.y=Math.atan2(62,16);plane.rotation.z=-Math.sin(t*Math.PI*2)*.045;
  }
  updateTransport(0);
@@ -230,5 +237,5 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
   root.updateMatrixWorld(true);for(const{mesh,color}of vehicleMeshes){if(!mesh.parent.visible)continue;const pos=new T.Vector3(),q=new T.Quaternion(),scale=new T.Vector3();mesh.matrixWorld.decompose(pos,q,scale);const e=new T.Euler().setFromQuaternion(q),geo=mesh.geometry;out.push({kind:'transport',positions:Array.from(geo.attributes.position.array),indices:geo.index?Array.from(geo.index.array):null,items:[{pos:pos.toArray(),scale:scale.toArray(),rot:[e.x,e.y,e.z],color}]})}
   return {centers:tileCenters,batches:out,landscape};
  }
- return Object.assign(api,{root,tileCenters,rooftopSymbols,roofs,landscape,transport,vehicles,updateTransport,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
+ return Object.assign(api,{root,tileCenters,rooftopSymbols,roofs,landscape,transport,vehicles,updateTransport,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R,SPACE},exportRender});
 }

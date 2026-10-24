@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoundedBoxGeometry} from './rounded-box.js';
-import {buildMedicalTown} from './island-model.js?v=16';
+import {buildMedicalTown} from './island-model.js?v=17';
 
 const stage=document.querySelector('#island'),area=document.querySelector('#scene');
 let renderer;
@@ -18,7 +18,7 @@ function start(){
  const ambient=new T.HemisphereLight(0xfff9e9,0xb0bea3,2.15);scene.add(ambient);const fill=new T.AmbientLight(0xe5f4ee,.36);scene.add(fill);
  const sun=new T.DirectionalLight(0xfff3d9,3.25);sun.position.set(-15,28,18);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-32,right:32,top:32,bottom:-32,near:1,far:80});sun.shadow.bias=-.0002;sun.shadow.normalBias=.025;sun.shadow.radius=3;sun.shadow.camera.updateProjectionMatrix();scene.add(sun);
  const city=buildMedicalTown(T,RoundedBoxGeometry,window.MEDTECH_TILES);scene.add(city.root);
- const sea=new T.Mesh(new T.PlaneGeometry(48,46),new T.MeshBasicMaterial({color:0x62aab5}));sea.rotation.x=-Math.PI/2;sea.position.y=-.11;scene.add(sea);const seaShadow=new T.Mesh(new T.PlaneGeometry(80,80),new T.ShadowMaterial({opacity:.16}));seaShadow.rotation.x=-Math.PI/2;seaShadow.position.y=-.105;seaShadow.receiveShadow=true;scene.add(seaShadow);
+ const sea=new T.Mesh(new T.PlaneGeometry(56,54),new T.MeshBasicMaterial({color:0x62aab5}));sea.rotation.x=-Math.PI/2;sea.position.y=-.11;scene.add(sea);const seaShadow=new T.Mesh(new T.PlaneGeometry(80,80),new T.ShadowMaterial({opacity:.16}));seaShadow.rotation.x=-Math.PI/2;seaShadow.position.y=-.105;seaShadow.receiveShadow=true;scene.add(seaShadow);
  const marker=window.MedtechLabels.create(stage,window.MEDTECH_TILES),labels=marker.root,badges=marker.badges;window.refreshIslandLabels?.();
  const selectedRing=new T.LineLoop(new T.BufferGeometry().setFromPoints(Array.from({length:6},(_,i)=>new T.Vector3(Math.cos(Math.PI/6+i*Math.PI/3)*2.16,.70,Math.sin(Math.PI/6+i*Math.PI/3)*2.16))),new T.LineBasicMaterial({color:0xd97043}));selectedRing.visible=false;scene.add(selectedRing);
  const mats=new Map();function material(c){if(!mats.has(c))mats.set(c,new T.MeshStandardMaterial({color:c,roughness:.72}));return mats.get(c)}
