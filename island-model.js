@@ -97,13 +97,14 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
 
  // A continuous faceted lake basin surrounds the navigable districts.
  function lakeBasin(){
-  owner=-1;const segments=64,scales=[1,1.045,1.16,1.42,1.85,2.6,4],levels=[.015,.17,.68,2.6,7.2,4.1,3.2],rings=[],triangles=[],groups=new Map(),palette=[0xcbd0ac,0xbdc69b,0xb7c195,0xb1bc8e,0xbbc599,0xb4bf92],rx=20.2,rz=18.7;
+  owner=-1;const segments=64,scales=[1,1.045,1.16,1.42,1.85,2.6,4],levels=[.015,.17,.68,3.2,10.2,6.4,4.8],rings=[],triangles=[],groups=new Map(),palette=[0xc1c9a4,0xa5b68e,0x99ad85,0x8fa47e,0xa6b68c,0x93a980],rx=20.2,rz=18.7;
   for(let j=0;j<scales.length;j++){rings[j]=[];for(let k=0;k<segments;k++){const a=k/segments*Math.PI*2,shore=1+.050*Math.sin(a*3+.3)+.030*Math.cos(a*7),ridge=Math.sin(a*5+.2)*.8+Math.cos(a*9)*.45+Math.sin(a*3)*.65,y=levels[j]+(j>1?ridge*(j-1)*.32:Math.sin(a*5)*.025);rings[j].push([Math.cos(a)*rx*scales[j]*shore,y,Math.sin(a)*rz*scales[j]*shore])}}
   function triangle(A,B,C,j,k){if((B[2]-A[2])*(C[0]-A[0])-(B[0]-A[0])*(C[2]-A[2])<0)[B,C]=[C,B];const color=j===0?palette[0]:palette[1+(k+j*3)%5];if(!groups.has(color))groups.set(color,[]);groups.get(color).push(...A,...B,...C);triangles.push({A,B,C,band:j})}
   for(let j=0;j<rings.length-1;j++)for(let k=0;k<segments;k++){const next=(k+1)%segments,A=rings[j][k],B=rings[j+1][k],C=rings[j][next],D=rings[j+1][next];triangle(A,B,C,j,k);triangle(B,D,C,j,k+1)}
   let index=0;for(const[color,positions]of groups){const kind='landscape'+index++,geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(positions,3));geo.computeVertexNormals();G[kind]=geo;p(kind,0,0,0,1,1,1,color)}
-  function pine(x,y,z,s){cyl(x,y+.30*s,z,.035*s,.60*s,C.brown);p('cone',x,y+.68*s,z,.56*s,1.05*s,.56*s,0x839c6b);p('cone',x,y+1.02*s,z,.38*s,.88*s,.38*s,0x9bb07a)}
-  let forestCount=0;for(const t of triangles){if(t.band<1||t.band>3||rand()>.60)continue;let u=.18+rand()*.48,v=.18+rand()*.35;if(u+v>.88)v=.88-u;const w=1-u-v,x=t.A[0]*u+t.B[0]*v+t.C[0]*w,y=t.A[1]*u+t.B[1]*v+t.C[1]*w,z=t.A[2]*u+t.B[2]*v+t.C[2]*w,s=.65+rand()*.65;if(rand()<.65)pine(x,y,z,s);else tree(x,z,s,false,y,true);forestCount++}
+  function pine(x,y,z,s){cyl(x,y+.30*s,z,.035*s,.60*s,C.brown);p('cone',x,y+.68*s,z,.56*s,1.05*s,.56*s,0x608767);p('cone',x,y+1.02*s,z,.38*s,.88*s,.38*s,0x7d9c77)}
+  let forestCount=0;for(const t of triangles)for(let grove=0;grove<3;grove++){if(t.band<1||t.band>4||rand()>.55)continue;let u=.18+rand()*.48,v=.18+rand()*.35;if(u+v>.88)v=.88-u;const w=1-u-v,x=t.A[0]*u+t.B[0]*v+t.C[0]*w,y=t.A[1]*u+t.B[1]*v+t.C[1]*w,z=t.A[2]*u+t.B[2]*v+t.C[2]*w,s=.65+rand()*.65;if(rand()<.65)pine(x,y,z,s);else tree(x,z,s,false,y,true);forestCount++}
+  for(let h=0;h<14;h++){const k=(h*7+11)%segments,A=rings[1][k],B=rings[2][k],x=A[0]*.5+B[0]*.5,z=A[2]*.5+B[2]*.5,y=A[1]*.5+B[1]*.5;box(x,y+.22,z,.44,.44,.38,0xf0e7cf);p('roof',x,y+.53,z,.72,.26,.64,C.coral,Math.PI/4);box(x,y+.26,z+.20,.15,.17,.025,C.glass)}
   let cloudGroups=0;for(let c=0;c<12;c++){const a=c/12*Math.PI*2+.15;if(Math.cos(a)*.47+Math.sin(a)*.65>.05)continue;cloudGroups++;const x=Math.cos(a)*32,z=Math.sin(a)*30,y=11+Math.sin(a*3)*1.4;for(let b=0;b<6;b++){const f=b/5-.5;ball(x+f*3.6,y+Math.sin(b*1.4)*.28,z+Math.cos(b*1.8)*.48,.88+(b%3)*.14,0xf1f0e5,[1.25,.72,.90])}}
   return{shoreline:rings[0],overview:Array.from({length:12},(_,i)=>({x:Math.cos(i/12*Math.PI*2)*18.9,z:Math.sin(i/12*Math.PI*2)*17.5})),forestCount,terrainTriangles:triangles.length,cloudGroups};
  }
@@ -111,6 +112,24 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
 
  G.glass=G.round;const batches=new Map();for(const a of parts){const key=a.color===C.glass?'glass':a.kind;let b=batches.get(key);if(!b)batches.set(key,b=[]);b.push(a)}
  const staticMeshes=[];for(const [kind,items]of batches){const material=new T.MeshStandardMaterial({roughness:kind==='ball'?.66:.82,metalness:0,vertexColors:false});const mesh=new T.InstancedMesh(G[kind],material,items.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.owners=items.map(p=>p.owner);const dummy=new T.Object3D();items.forEach((a,i)=>{dummy.position.set(...a.pos);dummy.rotation.set(...a.rot);dummy.scale.set(...a.scale);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(a.color))});mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();root.add(mesh);staticMeshes.push({mesh,items,kind})}
+ // Cargo and air traffic are scenery; they do not represent actual trade routes.
+ const transport=new T.Group(),vehicles=[],vehicleMeshes=[],beacons=[];root.add(transport);
+ function vehiclePart(parent,kind,pos,scale,color,rotation=[0,0,0],light=false){const material=new T.MeshStandardMaterial({color,roughness:.72,emissive:light?color:0,emissiveIntensity:light?.3:0}),mesh=new T.Mesh(G[kind],material);mesh.position.set(...pos);mesh.scale.set(...scale);mesh.rotation.set(...rotation);mesh.castShadow=true;mesh.receiveShadow=true;parent.add(mesh);vehicleMeshes.push({mesh,color});if(light)beacons.push(mesh);return mesh}
+ const ship=new T.Group();ship.name='cargo-vessel';transport.add(ship);vehicles.push({kind:'cargo',group:ship});
+ const vp=(kind,pos,scale,color,rotation,light)=>vehiclePart(ship,kind,pos,scale,color,rotation,light);
+ vp('round',[0,.13,0],[.94,.40,3.18],0x365b64);vp('ball',[0,.12,1.40],[.92,.39,.78],0x365b64);vp('round',[0,.35,0],[.87,.11,2.80],0xc8bca3);vp('round',[0,.55,-1.05],[.76,.41,.56],0xf4ecdb);vp('round',[0,.81,-1.05],[.79,.14,.58],0xf4ecdb);vp('round',[0,.82,-.74],[.62,.10,.025],0x709d9e);vp('cyl',[.19,1.02,-1.12],[.12,.36,.12],0xc76b45);
+ for(let row=0;row<3;row++)for(let col=0;col<2;col++){const x=(col-.5)*.39,z=-.37+row*.58,c=[0xd8744b,0x669692,0xd6b961,0xe2c5a3,0x7f999e,0xc87251][row*2+col];vp('round',[x,.57,z],[.36,.33,.52],c);for(let rib=0;rib<4;rib++)vp('box',[x-.182,.57,z+(rib-1.5)*.11],[.013,.28,.017],0xeee3ce);if(row<2)vp('round',[x,.91,z],[.36,.32,.52],c)}
+ vp('ball',[-.43,.76,-.80],[.07,.07,.07],0xe77d64,undefined,true);vp('ball',[.43,.76,-.80],[.07,.07,.07],0x8dc5aa,undefined,true);
+ for(const side of [-1,1])vp('round',[side*.55,-.035,-1.85],[.07,.018,1.4],0xa0d0ce,[0,side*.14,0]);
+ const plane=new T.Group();plane.name='cargo-aircraft';transport.add(plane);vehicles.push({kind:'aircraft',group:plane});
+ const ap=(kind,pos,scale,color,rotation,light)=>vehiclePart(plane,kind,pos,scale,color,rotation,light);
+ ap('ball',[0,0,0],[.43,.43,2.7],0xf3eee2);ap('ball',[0,.10,1.02],[.32,.16,.35],0x567d87);ap('round',[0,-.03,-.12],[2.72,.075,.44],0xe5e4db,[0,.10,0]);ap('round',[0,.06,-1.02],[1.08,.065,.34],0xd3764d);ap('round',[0,.35,-1.06],[.085,.63,.48],0xd3764d,[.18,0,0]);
+ for(const side of [-1,1]){ap('ball',[side*.68,-.19,.04],[.25,.25,.59],0xe6e7e0);ap('ball',[side*.68,-.19,.30],[.16,.16,.025],0x3d5b62);ap('ball',[side*1.36,-.01,-.24],[.065,.065,.065],side<0?0xd7765c:0x79b49a,undefined,true);for(let w=0;w<5;w++)ap('round',[side*.207,.07,.64-w*.22],[.019,.060,.080],0x739a9d)}
+ function updateTransport(time){const a=time*.021+.75;ship.position.set(Math.sin(a)*17.0,-.01,Math.cos(a)*15.7);ship.rotation.y=Math.atan2(Math.cos(a)*17.0,-Math.sin(a)*15.7);ship.rotation.z=Math.sin(time*.8)*.012;
+  const u=((time+31)%112)/112;plane.visible=u<.83;const t=u/.83;plane.position.set(-31+t*62,10.4+Math.sin(t*Math.PI)*1.1,-12+t*16);plane.rotation.y=Math.atan2(62,16);plane.rotation.z=-Math.sin(t*Math.PI*2)*.045;
+ }
+ updateTransport(0);
+
  // Connect building doors, their forecourts, sidewalks and the adjacent-cell crossings.
  const nodes=[],adj=[],rings=[],doorIds=[],stations=[],pathCache=new Map();
  function node(x,z,tile,building=-1){const id=nodes.length;nodes.push({x,z,tile,building});adj.push([]);return id}
@@ -150,11 +169,12 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  }
  const api={hiddenActor:-1};
  updatePeople(0);
- function setNight(n){for(const b of staticMeshes){let changed=false;b.items.forEach((a,i)=>{if(a.color===C.glass){const c=new T.Color(C.glass).lerp(new T.Color(0xffd99a),n);b.mesh.setColorAt(i,c);changed=true}});if(changed)b.mesh.instanceColor.needsUpdate=true}}
+ function setNight(n){for(const b of beacons)b.material.emissiveIntensity=.3+n*2.4;for(const b of staticMeshes){let changed=false;b.items.forEach((a,i)=>{if(a.color===C.glass){const c=new T.Color(C.glass).lerp(new T.Color(0xffd99a),n);b.mesh.setColorAt(i,c);changed=true}});if(changed)b.mesh.instanceColor.needsUpdate=true}}
  function exportRender(){
   const out=staticMeshes.map(b=>({kind:b.kind,positions:Array.from(G[b.kind].attributes.position.array),normals:Array.from(G[b.kind].attributes.normal.array),indices:G[b.kind].index?Array.from(G[b.kind].index.array):null,items:b.items}));
   for(const b of dynamicMeshes){const kind=b.list.length?actors[b.list[0].actor].parts[b.list[0].part].kind:null;if(!kind)continue;const items=b.list.map(r=>{const a=actors[r.actor];if(a.indoors)return null;const p=a.parts[r.part],c=Math.cos(a.ry),s=Math.sin(a.ry);return{kind,pos:[a.x+p.pos[0]*c+p.pos[2]*s,a.y+p.pos[1],a.z-p.pos[0]*s+p.pos[2]*c],scale:p.scale,color:p.color,rot:[p.rot[0],p.rot[1]+a.ry,p.rot[2]]}}).filter(Boolean);out.push({kind,positions:Array.from(G[kind].attributes.position.array),normals:Array.from(G[kind].attributes.normal.array),indices:G[kind].index?Array.from(G[kind].index.array):null,items})}
+  root.updateMatrixWorld(true);for(const{mesh,color}of vehicleMeshes){if(!mesh.parent.visible)continue;const pos=new T.Vector3(),q=new T.Quaternion(),scale=new T.Vector3();mesh.matrixWorld.decompose(pos,q,scale);const e=new T.Euler().setFromQuaternion(q),geo=mesh.geometry;out.push({kind:'transport',positions:Array.from(geo.attributes.position.array),indices:geo.index?Array.from(geo.index.array):null,items:[{pos:pos.toArray(),scale:scale.toArray(),rot:[e.x,e.y,e.z],color}]})}
   return {centers:tileCenters,batches:out,landscape};
  }
- return Object.assign(api,{root,tileCenters,landscape,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
+ return Object.assign(api,{root,tileCenters,landscape,transport,vehicles,updateTransport,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
 }
