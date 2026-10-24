@@ -3,7 +3,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  const root=new T.Group(),parts=[],actors=[],lamps=[],tileCenters=[],doors=[],windowColors=[],roofs=[],rooftopSymbols=[];
  const G={box:new T.BoxGeometry(1,1,1),round:new RoundedBoxGeometry(1,1,1,2,.09),cyl:new T.CylinderGeometry(.5,.5,1,12),cone:new T.ConeGeometry(.5,1,10),ball:new T.SphereGeometry(.5,12,8),leaf:new T.IcosahedronGeometry(.5,1),hex:new T.CylinderGeometry(.5,.5,1,6),roof:new T.ConeGeometry(.5,1,4),ring:new T.TorusGeometry(.5,.055,8,24)};
  const heart=new T.Shape();heart.moveTo(0,-.35);heart.bezierCurveTo(-.65,.05,-.35,.60,0,.27);heart.bezierCurveTo(.35,.60,.65,.05,0,-.35);G.heart=new T.ExtrudeGeometry(heart,{depth:.12,bevelEnabled:true,bevelThickness:.025,bevelSize:.025,bevelSegments:1,steps:1,curveSegments:12});
- const C={cream:0xf7f0df,white:0xf6f6ec,coral:0xd96e43,orange:0xe3894e,teal:0x538d95,glass:0xa9d5d2,brown:0xa58263,wood:0xbc9774,ink:0x3c4a48,green:0x89a870,lime:0xaac186,sand:0xe1cd9f,gray:0xc6c6b8};
+ const C={cream:0xf7f0df,white:0xf6f6ec,coral:0xd96e43,orange:0xe3894e,teal:0x538d95,glass:0xa9d5d2,clinicGlass:0x538897,brown:0xa58263,wood:0xbc9774,ink:0x3c4a48,green:0x89a870,lime:0xaac186,sand:0xe1cd9f,gray:0xc6c6b8};
  // Pale clinical buildings form the center; deeper industrial colors frame them.
  function districtPalette(d){
   if(d.role==='hospital')return{clinical:true,wall:0xf5f1e5,roof:0xcbdcda,ground:0xe5e5d6,paving:[0xeeeade,0xe3e1d2],base:0xc3bda6};
@@ -33,11 +33,19 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function planter(x,z){box(x,TOP+.09,z,.26,.18,.26,0xc18f6f);bush(x,z,.15)}
  function bin(x,z){box(x,TOP+.17,z,.11,.33,.12,0x739a91);box(x,TOP+.34,z,.13,.035,.14,C.ink)}
  function bunting(a,b){beam(a,b,.009,C.ink);const n=12;for(let j=1;j<n;j++){const f=j/n,x=a[0]+(b[0]-a[0])*f,y=a[1]+(b[1]-a[1])*f-Math.sin(f*Math.PI)*.10,z=a[2]+(b[2]-a[2])*f;box(x,y-.055,z,.07,.11,.018,[C.coral,0xe8c46f,C.teal,C.cream][j%4])}}
- function windows(x,z,w,h,d,y=TOP){const clinical=currentPalette()?.clinical,py=clinical?.42:.30,px=clinical?.34:.25,ww=clinical?.23:.16,wh=clinical?.24:.18;for(let floor=0;floor<Math.floor(h/py);floor++)for(let col=0;col<Math.max(1,Math.floor(w/px));col++){const xx=x-w/2+px*.56+col*px,yy=y+.25+floor*py;box(xx,yy,z+d/2+.012,ww,wh,.025,C.glass);windowColors.push(parts.length-1)}for(let floor=0;floor<Math.floor(h/py);floor++)for(let col=0;col<Math.max(1,Math.floor(d/px));col++){box(x+w/2+.012,y+.25+floor*py,z-d/2+px*.56+col*px,.025,wh,ww,C.glass);windowColors.push(parts.length-1)}}
+ function windows(x,z,w,h,d,y=TOP){
+  const clinical=currentPalette()?.clinical,py=clinical?.43:.30,px=clinical?.36:.25,wh=clinical?.26:.18,glass=clinical?C.clinicGlass:C.glass,rows=Math.max(1,Math.floor(h/py));
+  function facade(length,side){const cols=Math.max(1,Math.floor((length-.08)/px)),step=length/cols,ww=Math.min(clinical?.25:.16,step*.72);for(let floor=0;floor<rows;floor++)for(let col=0;col<cols;col++){const offset=-length/2+(col+.5)*step,yy=y+.25+floor*py;if(yy+wh/2>y+h-.02)continue;
+   const front=side<2,sign=side%2===0?1:-1,xx=front?x+offset:x+sign*w/2,zz=front?z+sign*d/2:z+offset;
+   if(clinical){box(xx+(front?0:sign*.025),yy,zz+(front?sign*.025:0),front?ww+.055:.045,wh+.055,front?.045:ww+.055,0xd2dfd9)}
+   box(xx+(front?0:sign*.055),yy,zz+(front?sign*.055:0),front?ww:.022,wh,front?.022:ww,glass);windowColors.push(parts.length-1);
+   if(clinical){box(xx+(front?0:sign*.072),yy,zz+(front?sign*.072:0),front?.013:.013,wh,front?.013:.013,0xb7ccca)}
+  }}
+  facade(w,0);facade(w,1);facade(d,2);facade(d,3);
+ }
  function building(x,z,w,h,d,roof=C.coral,modern=false,base=TOP){if(owner>=0&&!doors[owner])doors[owner]={x,z:z+d/2+.035,tile:owner};const palette=currentPalette();if(palette?.clinical)h*=definitions[owner].id==='hospital'?2:1.5;if(palette&&!palette.clinical)roof=palette.roof;box(x,base+h/2,z,w,h,d,palette?.wall??C.cream);windows(x,z,w,h-.08,d,base);box(x,base+h+.035,z,w+.10,.10,d+.1,roof);if(modern){box(x,base+h+.10,z,w*.76,.08,d*.68,palette&&!palette.clinical?palette.wall:0xe8e5d9);box(x+.18,base+h+.2,z-.10,.25,.15,.22,0xc5cac5)}else{p('roof',x,base+h+.16,z,w*1.5,.27,d*1.5,roof,Math.PI/4)}if(owner>=0&&(!roofs[owner]||base+h>roofs[owner].y))roofs[owner]={x,z,y:base+h+.34};
- // Architectural trim follows the wall volume rather than every window.
- const trim=0xc6604c,stroke=palette?.clinical?.035:.025;for(const dx of [-w/2,w/2])for(const dz of [-d/2,d/2])p('box',x+dx,base+h/2,z+dz,stroke,h,stroke,trim);
- for(const yy of [base+.05,base+h+.09,...(h>2.5?[base+h*.50]:[])]){p('box',x,yy,z+d/2+.012,w+.035,stroke,.028,trim);p('box',x,yy,z-d/2-.012,w+.035,stroke,.028,trim);p('box',x-w/2-.012,yy,z,.028,stroke,d+.035,trim);p('box',x+w/2+.012,yy,z,.028,stroke,d+.035,trim)}
+ // Concrete roof slabs and recessed glazing define the volume without outline strokes.
+ if(palette?.clinical){box(x,base+.045,z,w+.035,.09,d+.035,0xd7ddd0)}
  box(x,base+.24,z+d/2+.03,.20,.48,.04,C.teal);box(x,base+.04,z+d/2+.19,w*.8,.08,.32,0xd8d5c8)}
  function cross(x,y,z,size=.28){box(x,y,z,size,.07,size*.27,C.coral);box(x,y,z,size*.27,.07,size,C.coral)}
  function canopy(x,z,w=1.3,d=.6){for(const dx of [-w*.43,w*.43])for(const dz of [-d*.4,d*.4])cyl(x+dx,TOP+.33,z+dz,.025,.66,C.teal);box(x,TOP+.68,z,w,.09,d,currentPalette()?.roof??C.coral)}
@@ -68,7 +76,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function ambulance(x,z,ry=0){box(x,TOP+.17,z,.35,.27,.72,C.white,ry);box(x,TOP+.37,z-.12,.31,.18,.35,C.white,ry);box(x,TOP+.39,z+.075,.32,.15,.025,C.glass,ry);box(x,TOP+.50,z-.13,.16,.045,.07,C.coral,ry);for(const dx of [-.19,.19])for(const dz of [-.22,.22])p('cyl',x+dx,TOP+.075,z+dz,.15,.045,.15,0x49524a,0,Math.PI/2);cross(x,TOP+.315,z+.1,.18)}
  function tables(x,z){cyl(x,TOP+.23,z,.17,.035,0xe2c086);cyl(x,TOP+.12,z,.025,.23,C.ink);for(let j=0;j<3;j++){const a=j*2.094;box(x+Math.cos(a)*.23,TOP+.13,z+Math.sin(a)*.23,.13,.03,.13,C.teal);cyl(x+Math.cos(a)*.23,TOP+.07,z+Math.sin(a)*.23,.012,.13,C.ink)}}
 
- function clinic(x,z,d){const roof=new T.Color(d.color).lerp(new T.Color(0xf6f1e3),.42).getHex();building(x-.30,z-.35,1.30,1.10,.95,roof,true);building(x+.70,z-.40,.65,.70,.78,roof,true);box(x-.30,TOP+1.12,z+.14,.30,.065,.035,C.coral);box(x-.30,TOP+1.12,z+.14,.065,.30,.035,C.coral);canopy(x-.25,z+.63,1.18,.50);bench(x+.85,z+.65,Math.PI/2);box(x-.98,TOP+.45,z+.52,.33,.42,.045,roof);box(x-.98,TOP+.45,z+.55,.24,.24,.015,C.white)}
+ function clinic(x,z,d){const roof=new T.Color(d.color).lerp(new T.Color(0xf6f1e3),.42).getHex();building(x-.30,z-.35,1.30,1.10,.95,roof,true);building(x+.70,z-.40,.65,.70,.78,roof,true);box(x-.30,TOP+1.12,z+.23,.30,.065,.035,C.coral);box(x-.30,TOP+1.12,z+.23,.065,.30,.035,C.coral);canopy(x-.25,z+.63,1.18,.50);bench(x+.85,z+.65,Math.PI/2);box(x-.98,TOP+.45,z+.52,.33,.42,.045,roof);box(x-.98,TOP+.45,z+.55,.24,.24,.015,C.white)}
  function techLab(x,z,d){const color=districtPalette(d).roof;building(x-.34,z-.40,.98,.92,.82,color,true);box(x-.34,TOP+1.08,z-.40,.80,.09,.60,color);canopy(x+.63,z+.03,.57,.85);box(x+.63,TOP+.22,z+.03,.40,.42,.62,C.white);box(x+.63,TOP+.46,z+.03,.30,.055,.48,color);box(x-.94,TOP+.43,z+.52,.34,.44,.05,color);box(x-.94,TOP+.43,z+.555,.25,.25,.02,C.white);if(d.family==='surface'){for(let j=0;j<3;j++){cyl(x+.5+j*.13,TOP+.53,z+.04,.035,.16,C.glass)}}else if(d.family==='structure'){p('ring',x+.63,TOP+.65,z+.03,.29,.29,.20,color,Math.PI/2)}else if(d.family==='forming'){ball(x+.63,TOP+.62,z+.03,.15,color,[1.2,1,.7])}else{beam([x+.63,TOP+.63,z-.1],[x+.63,TOP+.48,z+.16],.028,color)}}
  function courtyard(t){const {x,z,i}=t,d=definitions[i],palette=districtPalette(d);owner=i;
  p('hex',x,.10,z,R*2.09,.06,R*2.09,0x94c6c8);p('hex',x,.32,z,R*2,.42,R*2,palette.base);p('hex',x,.56,z,R*2.015,.08,R*2.015,palette.clinical?C.cream:0xb5bba9);p('hex',x,.63,z,R*1.98,.065,R*1.98,palette.ground);
@@ -95,7 +103,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  case 9:building(X-.5,Z-.48,.9,.7,.8);canopy(X+.52,Z-.3,.75,1.0);for(let j=0;j<4;j++){box(X-.8+j*.4,TOP+.13,Z+.67,.24,.25,.4,0xd4d9cd);p('ring',X-.8+j*.4,TOP+.35,Z+.67,.17,.17,.17,C.teal,Math.PI/2)}break;
  case 10:building(X-.5,Z-.5,.85,.9,.9,C.coral,true);building(X+.55,Z-.5,.7,.58,.85,C.white,true);box(X+.15,TOP+.18,Z+.65,1.5,.36,.65,C.cream);box(X+.15,TOP+.38,Z+.65,1.2,.055,.48,C.teal);for(let j=0;j<5;j++)cyl(X-.3+j*.22,TOP+.45,Z+.65,.035,.10,C.cream);solar(X-.5,TOP+1.06,Z-.5);break;
  case 11:building(X-.45,Z-.45,.85,1.1,.8,C.coral,true);p('ring',X+.65,TOP+.50,Z-.35,.64,.64,.30,C.teal);box(X+.65,TOP+.10,Z-.35,.7,.15,.4,C.white);for(let j=0;j<3;j++){box(X-.65+j*.42,TOP+.20,Z+.65,.32,.38,.42,[C.cream,C.teal,C.orange][j]);box(X-.65+j*.42,TOP+.41,Z+.65,.22,.05,.25,C.glass)}break;
- case 12:building(X,Z+.43,2.10,.55,.65,0xb9d3ce,true);building(X-.25,Z-.40,1.65,1.75,1.12,0xcbdcd5,true);building(X-.32,Z-.43,1.15,.35,.78,0xcbdcd5,true,TOP+3.5);building(X+.85,Z-.42,.70,1.05,.87,0xb9d3ce,true);box(X-.25,TOP+2.55,Z+.18,.52,.13,.05,C.coral);box(X-.25,TOP+2.55,Z+.18,.13,.52,.05,C.coral);canopy(X,Z+.96,1.60,.48);ambulance(X+1.03,Z+.90);statue(X-1.12,Z-.98);break;
+ case 12:building(X,Z+.43,2.10,.55,.65,0xb9d3ce,true);building(X-.25,Z-.40,1.65,1.75,1.12,0xcbdcd5,true);building(X-.32,Z-.43,1.15,.35,.78,0xcbdcd5,true,TOP+3.5);building(X+.85,Z-.42,.70,1.05,.87,0xb9d3ce,true);box(X-.25,TOP+2.55,Z+.26,.52,.13,.05,C.coral);box(X-.25,TOP+2.55,Z+.26,.13,.52,.05,C.coral);canopy(X,Z+.96,1.60,.48);ambulance(X+1.03,Z+.90);statue(X-1.12,Z-.98);break;
  case 13:building(X-.45,Z-.55,1.05,1.0,.8,C.coral,true);canopy(X+.65,Z-.35,.6,.7);for(let j=0;j<5;j++)box(X-.85+j*.38,TOP+.16,Z+.65,.30,.31,.57,[C.coral,0xe5bf6d,C.teal,0xd9a879,0xa8bc9c][j]);palm(X+.9,Z+.5,.8);break;
  case 14:building(X-.40,Z-.38,1.0,1.35,.88,0x73989e,true);building(X+.65,Z-.43,.62,.9,.80,0x73989e,true);canopy(X,Z+.58,1.35,.60);tables(X-.55,Z+.62);tables(X+.55,Z+.62);p('ring',X-.40,TOP+1.63,Z-.38,.40,.40,.14,0xc8a258);break;
  }
@@ -156,7 +164,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  }
  const landscape=lakeBasin();
 
- G.glass=G.round;const batches=new Map();for(const a of parts){const key=a.color===C.glass?'glass':a.kind;let b=batches.get(key);if(!b)batches.set(key,b=[]);b.push(a)}
+ G.glass=G.round;const batches=new Map();for(const a of parts){const key=(a.color===C.glass||a.color===C.clinicGlass)?'glass':a.kind;let b=batches.get(key);if(!b)batches.set(key,b=[]);b.push(a)}
  const staticMeshes=[];for(const [kind,items]of batches){const material=new T.MeshStandardMaterial({roughness:kind==='ball'?.66:.82,metalness:0,vertexColors:false});const mesh=new T.InstancedMesh(G[kind],material,items.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.owners=items.map(p=>p.owner);const dummy=new T.Object3D();items.forEach((a,i)=>{dummy.position.set(...a.pos);dummy.rotation.set(...a.rot);dummy.scale.set(...a.scale);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(a.color))});mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();root.add(mesh);staticMeshes.push({mesh,items,kind})}
  // Cargo and air traffic are scenery; they do not represent actual trade routes.
  const transport=new T.Group(),vehicles=[],vehicleMeshes=[],beacons=[];root.add(transport);
@@ -215,7 +223,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  }
  const api={hiddenActor:-1};
  updatePeople(0);
- function setNight(n){for(const b of beacons)b.material.emissiveIntensity=.3+n*2.4;for(const b of staticMeshes){let changed=false;b.items.forEach((a,i)=>{if(a.color===C.glass){const c=new T.Color(C.glass).lerp(new T.Color(0xffd99a),n);b.mesh.setColorAt(i,c);changed=true}});if(changed)b.mesh.instanceColor.needsUpdate=true}}
+ function setNight(n){for(const b of beacons)b.material.emissiveIntensity=.3+n*2.4;for(const b of staticMeshes){let changed=false;b.items.forEach((a,i)=>{if(a.color===C.glass||a.color===C.clinicGlass){const c=new T.Color(a.color).lerp(new T.Color(0xffd99a),n);b.mesh.setColorAt(i,c);changed=true}});if(changed)b.mesh.instanceColor.needsUpdate=true}}
  function exportRender(){
   const out=staticMeshes.map(b=>({kind:b.kind,positions:Array.from(G[b.kind].attributes.position.array),normals:Array.from(G[b.kind].attributes.normal.array),indices:G[b.kind].index?Array.from(G[b.kind].index.array):null,items:b.items}));
   for(const b of dynamicMeshes){const kind=b.list.length?actors[b.list[0].actor].parts[b.list[0].part].kind:null;if(!kind)continue;const items=b.list.map(r=>{const a=actors[r.actor];if(a.indoors)return null;const p=a.parts[r.part],c=Math.cos(a.ry),s=Math.sin(a.ry);return{kind,pos:[a.x+p.pos[0]*c+p.pos[2]*s,a.y+p.pos[1],a.z-p.pos[0]*s+p.pos[2]*c],scale:p.scale,color:p.color,rot:[p.rot[0],p.rot[1]+a.ry,p.rot[2]]}}).filter(Boolean);out.push({kind,positions:Array.from(G[kind].attributes.position.array),normals:Array.from(G[kind].attributes.normal.array),indices:G[kind].index?Array.from(G[kind].index.array):null,items})}
