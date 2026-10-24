@@ -1,7 +1,7 @@
 import * as T from 'three';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 import {RoundedBoxGeometry} from './rounded-box.js';
-import {buildMedicalTown} from './island-model.js?v=8';
+import {buildMedicalTown} from './island-model.js?v=9';
 
 const stage=document.querySelector('#island'),area=document.querySelector('#scene');
 let renderer;
