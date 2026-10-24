@@ -1,7 +1,8 @@
 // Procedural medical town. All architecture and characters are generated here.
 export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
- const root=new T.Group(),parts=[],actors=[],lamps=[],tileCenters=[],doors=[],windowColors=[];
+ const root=new T.Group(),parts=[],actors=[],lamps=[],tileCenters=[],doors=[],windowColors=[],roofs=[],rooftopSymbols=[];
  const G={box:new T.BoxGeometry(1,1,1),round:new RoundedBoxGeometry(1,1,1,2,.09),cyl:new T.CylinderGeometry(.5,.5,1,12),cone:new T.ConeGeometry(.5,1,10),ball:new T.SphereGeometry(.5,12,8),leaf:new T.IcosahedronGeometry(.5,1),hex:new T.CylinderGeometry(.5,.5,1,6),roof:new T.ConeGeometry(.5,1,4),ring:new T.TorusGeometry(.5,.055,8,24)};
+ const heart=new T.Shape();heart.moveTo(0,-.35);heart.bezierCurveTo(-.65,.05,-.35,.60,0,.27);heart.bezierCurveTo(.35,.60,.65,.05,0,-.35);G.heart=new T.ExtrudeGeometry(heart,{depth:.12,bevelEnabled:true,bevelThickness:.025,bevelSize:.025,bevelSegments:1,steps:1,curveSegments:12});
  const C={cream:0xf7f0df,white:0xf6f6ec,coral:0xd96e43,orange:0xe3894e,teal:0x538d95,glass:0xa9d5d2,brown:0xa58263,wood:0xbc9774,ink:0x3c4a48,green:0x89a870,lime:0xaac186,sand:0xe1cd9f,gray:0xc6c6b8};
  // Pale clinical buildings form the center; deeper industrial colors frame them.
  function districtPalette(d){
@@ -32,11 +33,12 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function planter(x,z){box(x,TOP+.09,z,.26,.18,.26,0xc18f6f);bush(x,z,.15)}
  function bin(x,z){box(x,TOP+.17,z,.11,.33,.12,0x739a91);box(x,TOP+.34,z,.13,.035,.14,C.ink)}
  function bunting(a,b){beam(a,b,.009,C.ink);const n=12;for(let j=1;j<n;j++){const f=j/n,x=a[0]+(b[0]-a[0])*f,y=a[1]+(b[1]-a[1])*f-Math.sin(f*Math.PI)*.10,z=a[2]+(b[2]-a[2])*f;box(x,y-.055,z,.07,.11,.018,[C.coral,0xe8c46f,C.teal,C.cream][j%4])}}
- function windows(x,z,w,h,d,y=TOP){for(let floor=0;floor<Math.floor(h/.3);floor++)for(let col=0;col<Math.max(1,Math.floor(w/.25));col++){const xx=x-w/2+.14+col*.25,yy=y+.22+floor*.3;box(xx,yy,z+d/2+.012,.16,.18,.025,C.glass);windowColors.push(parts.length-1)}for(let floor=0;floor<Math.floor(h/.3);floor++)for(let col=0;col<Math.max(1,Math.floor(d/.25));col++){box(x+w/2+.012,y+.22+floor*.3,z-d/2+.14+col*.25,.025,.18,.16,C.glass);windowColors.push(parts.length-1)}}
- function building(x,z,w,h,d,roof=C.coral,modern=false){if(owner>=0&&!doors[owner])doors[owner]={x,z:z+d/2+.035,tile:owner};const palette=currentPalette();if(palette?.clinical)h*=definitions[owner].id==='hospital'?4:2.5;if(palette&&!palette.clinical)roof=palette.roof;box(x,TOP+h/2,z,w,h,d,palette?.wall??C.cream);windows(x,z,w,h-.08,d);box(x,TOP+h+.035,z,w+.10,.10,d+.1,roof);if(modern){box(x,TOP+h+.10,z,w*.76,.08,d*.68,palette&&!palette.clinical?palette.wall:0xe8e5d9);box(x+.18,TOP+h+.2,z-.10,.25,.15,.22,0xc5cac5)}else{p('roof',x,TOP+h+.16,z,w*1.5,.27,d*1.5,roof,Math.PI/4)}// Architectural trim follows the wall volume rather than every window.
- const trim=0xc6604c,stroke=palette?.clinical?.035:.025;for(const dx of [-w/2,w/2])for(const dz of [-d/2,d/2])p('box',x+dx,TOP+h/2,z+dz,stroke,h,stroke,trim);
- for(const yy of [TOP+.05,TOP+h+.09,...Array.from({length:Math.max(0,Math.floor(h/1.15)-1)},(_,j)=>TOP+(j+1)*1.15)]){p('box',x,yy,z+d/2+.012,w+.035,stroke,.028,trim);p('box',x,yy,z-d/2-.012,w+.035,stroke,.028,trim);p('box',x-w/2-.012,yy,z,.028,stroke,d+.035,trim);p('box',x+w/2+.012,yy,z,.028,stroke,d+.035,trim)}
- box(x,TOP+.24,z+d/2+.03,.20,.48,.04,C.teal);box(x,TOP+.04,z+d/2+.19,w*.8,.08,.32,0xd8d5c8)}
+ function windows(x,z,w,h,d,y=TOP){const clinical=currentPalette()?.clinical,py=clinical?.42:.30,px=clinical?.34:.25,ww=clinical?.23:.16,wh=clinical?.24:.18;for(let floor=0;floor<Math.floor(h/py);floor++)for(let col=0;col<Math.max(1,Math.floor(w/px));col++){const xx=x-w/2+px*.56+col*px,yy=y+.25+floor*py;box(xx,yy,z+d/2+.012,ww,wh,.025,C.glass);windowColors.push(parts.length-1)}for(let floor=0;floor<Math.floor(h/py);floor++)for(let col=0;col<Math.max(1,Math.floor(d/px));col++){box(x+w/2+.012,y+.25+floor*py,z-d/2+px*.56+col*px,.025,wh,ww,C.glass);windowColors.push(parts.length-1)}}
+ function building(x,z,w,h,d,roof=C.coral,modern=false,base=TOP){if(owner>=0&&!doors[owner])doors[owner]={x,z:z+d/2+.035,tile:owner};const palette=currentPalette();if(palette?.clinical)h*=definitions[owner].id==='hospital'?2:1.5;if(palette&&!palette.clinical)roof=palette.roof;box(x,base+h/2,z,w,h,d,palette?.wall??C.cream);windows(x,z,w,h-.08,d,base);box(x,base+h+.035,z,w+.10,.10,d+.1,roof);if(modern){box(x,base+h+.10,z,w*.76,.08,d*.68,palette&&!palette.clinical?palette.wall:0xe8e5d9);box(x+.18,base+h+.2,z-.10,.25,.15,.22,0xc5cac5)}else{p('roof',x,base+h+.16,z,w*1.5,.27,d*1.5,roof,Math.PI/4)}if(owner>=0&&(!roofs[owner]||base+h>roofs[owner].y))roofs[owner]={x,z,y:base+h+.34};
+ // Architectural trim follows the wall volume rather than every window.
+ const trim=0xc6604c,stroke=palette?.clinical?.035:.025;for(const dx of [-w/2,w/2])for(const dz of [-d/2,d/2])p('box',x+dx,base+h/2,z+dz,stroke,h,stroke,trim);
+ for(const yy of [base+.05,base+h+.09,...(h>2.5?[base+h*.50]:[])]){p('box',x,yy,z+d/2+.012,w+.035,stroke,.028,trim);p('box',x,yy,z-d/2-.012,w+.035,stroke,.028,trim);p('box',x-w/2-.012,yy,z,.028,stroke,d+.035,trim);p('box',x+w/2+.012,yy,z,.028,stroke,d+.035,trim)}
+ box(x,base+.24,z+d/2+.03,.20,.48,.04,C.teal);box(x,base+.04,z+d/2+.19,w*.8,.08,.32,0xd8d5c8)}
  function cross(x,y,z,size=.28){box(x,y,z,size,.07,size*.27,C.coral);box(x,y,z,size*.27,.07,size,C.coral)}
  function canopy(x,z,w=1.3,d=.6){for(const dx of [-w*.43,w*.43])for(const dz of [-d*.4,d*.4])cyl(x+dx,TOP+.33,z+dz,.025,.66,C.teal);box(x,TOP+.68,z,w,.09,d,currentPalette()?.roof??C.coral)}
  function tank(x,z,r=.25,h=.65){cyl(x,TOP+h/2,z,r,h,0xe4e8df);ball(x,TOP+h,z,r,0xe7ebe2,[1,.35,1]);cyl(x,TOP+.10,z,r*1.08,.08,C.teal);beam([x+r,TOP+.30,z],[x+r+.28,TOP+.30,z],.04,C.teal)}
@@ -66,7 +68,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function ambulance(x,z,ry=0){box(x,TOP+.17,z,.35,.27,.72,C.white,ry);box(x,TOP+.37,z-.12,.31,.18,.35,C.white,ry);box(x,TOP+.39,z+.075,.32,.15,.025,C.glass,ry);box(x,TOP+.50,z-.13,.16,.045,.07,C.coral,ry);for(const dx of [-.19,.19])for(const dz of [-.22,.22])p('cyl',x+dx,TOP+.075,z+dz,.15,.045,.15,0x49524a,0,Math.PI/2);cross(x,TOP+.315,z+.1,.18)}
  function tables(x,z){cyl(x,TOP+.23,z,.17,.035,0xe2c086);cyl(x,TOP+.12,z,.025,.23,C.ink);for(let j=0;j<3;j++){const a=j*2.094;box(x+Math.cos(a)*.23,TOP+.13,z+Math.sin(a)*.23,.13,.03,.13,C.teal);cyl(x+Math.cos(a)*.23,TOP+.07,z+Math.sin(a)*.23,.012,.13,C.ink)}}
 
- function clinic(x,z,d){const roof=new T.Color(d.color).lerp(new T.Color(0xf6f1e3),.62).getHex();building(x-.30,z-.35,1.12,1.10,.90,roof,true);building(x+.65,z-.40,.60,.70,.72,roof,true);cross(x-.30,TOP+1.10*2.5+.19,z-.35,.46);box(x-.30,TOP+1.9,z+.115,.30,.065,.035,C.coral);box(x-.30,TOP+1.9,z+.115,.065,.30,.035,C.coral);canopy(x-.25,z+.48,.95,.44);bench(x+.85,z+.65,Math.PI/2);box(x-.90,TOP+.45,z+.52,.33,.42,.045,roof);box(x-.90,TOP+.45,z+.55,.24,.24,.015,C.white)}
+ function clinic(x,z,d){const roof=new T.Color(d.color).lerp(new T.Color(0xf6f1e3),.42).getHex();building(x-.30,z-.35,1.30,1.10,.95,roof,true);building(x+.70,z-.40,.65,.70,.78,roof,true);box(x-.30,TOP+1.12,z+.14,.30,.065,.035,C.coral);box(x-.30,TOP+1.12,z+.14,.065,.30,.035,C.coral);canopy(x-.25,z+.63,1.18,.50);bench(x+.85,z+.65,Math.PI/2);box(x-.98,TOP+.45,z+.52,.33,.42,.045,roof);box(x-.98,TOP+.45,z+.55,.24,.24,.015,C.white)}
  function techLab(x,z,d){const color=districtPalette(d).roof;building(x-.34,z-.40,.98,.92,.82,color,true);box(x-.34,TOP+1.08,z-.40,.80,.09,.60,color);canopy(x+.63,z+.03,.57,.85);box(x+.63,TOP+.22,z+.03,.40,.42,.62,C.white);box(x+.63,TOP+.46,z+.03,.30,.055,.48,color);box(x-.94,TOP+.43,z+.52,.34,.44,.05,color);box(x-.94,TOP+.43,z+.555,.25,.25,.02,C.white);if(d.family==='surface'){for(let j=0;j<3;j++){cyl(x+.5+j*.13,TOP+.53,z+.04,.035,.16,C.glass)}}else if(d.family==='structure'){p('ring',x+.63,TOP+.65,z+.03,.29,.29,.20,color,Math.PI/2)}else if(d.family==='forming'){ball(x+.63,TOP+.62,z+.03,.15,color,[1.2,1,.7])}else{beam([x+.63,TOP+.63,z-.1],[x+.63,TOP+.48,z+.16],.028,color)}}
  function courtyard(t){const {x,z,i}=t,d=definitions[i],palette=districtPalette(d);owner=i;
  p('hex',x,.10,z,R*2.09,.06,R*2.09,0x94c6c8);p('hex',x,.32,z,R*2,.42,R*2,palette.base);p('hex',x,.56,z,R*2.015,.08,R*2.015,palette.clinical?C.cream:0xb5bba9);p('hex',x,.63,z,R*1.98,.065,R*1.98,palette.ground);
@@ -93,14 +95,48 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  case 9:building(X-.5,Z-.48,.9,.7,.8);canopy(X+.52,Z-.3,.75,1.0);for(let j=0;j<4;j++){box(X-.8+j*.4,TOP+.13,Z+.67,.24,.25,.4,0xd4d9cd);p('ring',X-.8+j*.4,TOP+.35,Z+.67,.17,.17,.17,C.teal,Math.PI/2)}break;
  case 10:building(X-.5,Z-.5,.85,.9,.9,C.coral,true);building(X+.55,Z-.5,.7,.58,.85,C.white,true);box(X+.15,TOP+.18,Z+.65,1.5,.36,.65,C.cream);box(X+.15,TOP+.38,Z+.65,1.2,.055,.48,C.teal);for(let j=0;j<5;j++)cyl(X-.3+j*.22,TOP+.45,Z+.65,.035,.10,C.cream);solar(X-.5,TOP+1.06,Z-.5);break;
  case 11:building(X-.45,Z-.45,.85,1.1,.8,C.coral,true);p('ring',X+.65,TOP+.50,Z-.35,.64,.64,.30,C.teal);box(X+.65,TOP+.10,Z-.35,.7,.15,.4,C.white);for(let j=0;j<3;j++){box(X-.65+j*.42,TOP+.20,Z+.65,.32,.38,.42,[C.cream,C.teal,C.orange][j]);box(X-.65+j*.42,TOP+.41,Z+.65,.22,.05,.25,C.glass)}break;
- case 12:building(X-.42,Z-.30,1.20,2.10,1.02,C.white,true);building(X+.72,Z-.38,.75,1.05,.85,C.white,true);cross(X-.42,TOP+2.10*4+.18,Z-.30,.78);box(X-.42,TOP+6.8,Z+.225,.66,.16,.05,C.coral);box(X-.42,TOP+6.8,Z+.225,.16,.66,.05,C.coral);canopy(X,Z+.78,1.45,.48);ambulance(X+.92,Z+.72);statue(X-1.08,Z-.98);break;
+ case 12:building(X,Z+.43,2.10,.55,.65,0xb9d3ce,true);building(X-.25,Z-.40,1.65,1.75,1.12,0xcbdcd5,true);building(X-.32,Z-.43,1.15,.35,.78,0xcbdcd5,true,TOP+3.5);building(X+.85,Z-.42,.70,1.05,.87,0xb9d3ce,true);box(X-.25,TOP+2.55,Z+.18,.52,.13,.05,C.coral);box(X-.25,TOP+2.55,Z+.18,.13,.52,.05,C.coral);canopy(X,Z+.96,1.60,.48);ambulance(X+1.03,Z+.90);statue(X-1.12,Z-.98);break;
  case 13:building(X-.45,Z-.55,1.05,1.0,.8,C.coral,true);canopy(X+.65,Z-.35,.6,.7);for(let j=0;j<5;j++)box(X-.85+j*.38,TOP+.16,Z+.65,.30,.31,.57,[C.coral,0xe5bf6d,C.teal,0xd9a879,0xa8bc9c][j]);palm(X+.9,Z+.5,.8);break;
  case 14:building(X-.40,Z-.38,1.0,1.35,.88,0x73989e,true);building(X+.65,Z-.43,.62,.9,.80,0x73989e,true);canopy(X,Z+.58,1.35,.60);tables(X-.55,Z+.62);tables(X+.55,Z+.62);p('ring',X-.40,TOP+1.63,Z-.38,.40,.40,.14,0xc8a258);break;
  }
  if(d.role==='factory'){for(let j=0;j<5;j++){const a=j/5*Math.PI*2,px=X+Math.sin(a)*1.30,pz=Z+Math.cos(a)*1.30;cyl(px,TOP+.13,pz,.035,.26,C.gray);box(px,TOP+.28,pz,.30,.045,.25,C.white);box(px,TOP+.37,pz,.16,.14,.10,C.teal)}}
  if(i%3===0){cyl(X-1.25,TOP+.48,Z-.95,.028,.95,C.wood);cyl(X+1.25,TOP+.48,Z-.95,.028,.95,C.wood);bunting([X-1.25,TOP+.95,Z-.95],[X+1.25,TOP+.95,Z-.95]);}
  }
+ // One physical rooftop emblem per district; auxiliary buildings stay uncluttered.
+ function roofEmblem(i){const a=roofs[i],d=definitions[i];if(!a)return;owner=i;const x=a.x,z=a.z,y=a.y+.38,red=0xd37452,blue=0x649da6,ivory=0xf4e9d5,gold=0xe6bd68;
+  box(x,a.y+.015,z,.80,.055,.50,ivory);for(const dx of [-.22,.22])beam([x+dx,a.y-.18,z],[x+dx,y-.12,z],.026,C.brown);
+  const b=(dx,dy,dz,w,h,l,c=blue)=>box(x+dx,y+dy,z+dz,w,h,l,c),v=(A,B,r=.04,c=blue)=>beam([x+A[0],y+A[1],z+A[2]],[x+B[0],y+B[1],z+B[2]],r,c),sphere=(dx,dy,dz,r,c=blue,s=[1,1,1])=>ball(x+dx,y+dy,z+dz,r,c,s),ring=(dx,dy,dz,s,c=blue,ry=0)=>p('ring',x+dx,y+dy,z+dz,s,s,s,c,ry);
+  const tube=(color=blue)=>{v([-.48,.10,0],[.45,.23,0],.055,color);sphere(.45,.23,0,.04,color)};
+  let label='';
+  switch(d.id){
+   case'hospital':label='醫療十字';b(0,.14,0,.57,.15,.14,red);b(0,.14,0,.15,.57,.14,red);break;
+   case'cardio':label='心臟與血管';p('heart',x,y+.06,z,.75,.75,.75,red);v([.05,.35,0],[.05,.55,0],.065,blue);break;
+   case'nephro':label='透析濾器';b(0,.13,0,.38,.55,.20,ivory);for(let k=-2;k<=2;k++)v([k*.055,-.10,.12],[k*.055,.35,.12],.018,blue);v([-.35,-.15,0],[-.35,.40,0],.035,red);v([-.35,.40,0],[0,.44,0],.035,red);break;
+   case'icu':label='生理監視器';b(0,.14,0,.66,.45,.16,ivory);b(0,.14,.09,.56,.33,.025,0x365e65);for(const[A,B]of [[[-.24,.12,.11],[-.10,.12,.11]],[[-.10,.12,.11],[-.04,.25,.11]],[[-.04,.25,.11],[.03,.02,.11]],[[.03,.02,.11],[.10,.17,.11]],[[.10,.17,.11],[.25,.17,.11]]])v(A,B,.023,gold);break;
+   case'uro':label='泌尿道示意';sphere(-.18,.26,0,.14,red,[.75,1.3,.55]);sphere(.18,.26,0,.14,red,[.75,1.3,.55]);v([-.16,.15,0],[0,-.10,0],.025,blue);v([.16,.15,0],[0,-.10,0],.025,blue);sphere(0,-.10,0,.11,gold);break;
+   case'ward':label='輸液袋';v([-.28,-.18,0],[-.28,.55,0],.025,C.ink);v([-.28,.55,0],[.14,.55,0],.025,C.ink);b(.07,.23,0,.29,.42,.13,ivory);b(.07,.15,.08,.22,.16,.025,blue);v([.07,.02,0],[.29,-.18,0],.025,blue);break;
+   case'radiology':label='影像掃描環';ring(0,.18,0,.56,ivory);ring(0,.18,.02,.39,blue);b(0,-.12,.22,.23,.08,.65,ivory);break;
+   case't-balloon':label='球囊導管';tube(ivory);sphere(.12,.18,0,.17,gold,[1.65,.75,.75]);ring(-.33,.12,0,.15,blue,Math.PI/2);break;
+   case't-braid':label='編織管';tube(ivory);for(const side of [-1,1])for(let k=0;k<2;k++)for(let n=0;n<22;n++){const q=n/22,r=(n+1)/22,A=q*Math.PI*5*side+k*Math.PI,B=r*Math.PI*5*side+k*Math.PI;v([-.44+q*.88,.16+Math.cos(A)*.13,Math.sin(A)*.13],[-.44+r*.88,.16+Math.cos(B)*.13,Math.sin(B)*.13],.022,side<0?red:blue)}break;
+   case't-coil':label='繞簧管';tube(ivory);for(let n=0;n<65;n++){const q=n/65,r=(n+1)/65,A=q*Math.PI*16,B=r*Math.PI*16;v([-.42+q*.84,.17+Math.cos(A)*.14,Math.sin(A)*.14],[-.42+r*.84,.17+Math.cos(B)*.14,Math.sin(B)*.14],.026,gold)}break;
+   case't-extrude':label='變徑管段';v([-.44,.15,0],[-.02,.15,0],.23,blue);v([-.02,.15,0],[.42,.15,0],.10,blue);ring(-.43,.15,0,.24,ivory,Math.PI/2);ring(.42,.15,0,.11,ivory,Math.PI/2);break;
+   case't-laser':label='雷射加工頭';b(-.20,.38,0,.25,.31,.22,ivory);v([-.20,.22,0],[.18,-.05,0],.025,red);v([-.25,-.08,0],[.40,-.08,0],.10,blue);sphere(.18,-.05,0,.06,gold);break;
+   case't-hydro':label='水滴與導管';tube(ivory);sphere(0,.36,0,.17,blue,[.8,1,.65]);p('cone',x,y+.53,z,.19,.25,.16,blue);break;
+   case't-anti-bac':label='細菌阻隔示意';tube(ivory);ring(0,.32,0,.46,blue);v([-.19,.12,.04],[.19,.52,.04],.045,red);sphere(0,.32,0,.065,gold);for(let n=0;n<6;n++){const q=n*Math.PI/3;v([Math.cos(q)*.06,.32+Math.sin(q)*.06,0],[Math.cos(q)*.12,.32+Math.sin(q)*.12,0],.018,gold)}break;
+   case't-anti-enc':label='結晶阻隔示意';tube(ivory);for(let k=-1;k<=1;k++)p('leaf',x+k*.19,y+.40+Math.abs(k)*.07,z,.18,.24,.14,gold);v([-.29,.22,.10],[.29,.57,.10],.043,red);break;
+   case'materials':label='原料袋與粒子';b(-.13,.14,0,.38,.48,.25,ivory);b(-.13,.38,0,.36,.045,.25,red);for(let k=0;k<5;k++)sphere(.14+(k%2)*.14,.02+Math.floor(k/2)*.10,.05,.065,gold);break;
+   case'components':label='接頭零件';v([-.37,.15,0],[.37,.15,0],.18,blue);ring(-.23,.15,0,.26,ivory,Math.PI/2);ring(.23,.15,0,.26,ivory,Math.PI/2);v([0,.15,0],[0,.43,0],.14,gold);break;
+   case'equipment':label='加工設備';b(0,.09,0,.65,.38,.30,blue);b(-.15,.36,0,.24,.22,.25,ivory);b(.14,.12,.17,.20,.16,.025,gold);v([-.15,.24,0],[-.15,.02,0],.05,red);break;
+   case'packaging':label='醫材包裝袋';b(-.12,.15,0,.40,.54,.09,ivory);b(-.12,.16,.06,.28,.33,.025,blue);b(.24,.06,.10,.28,.32,.27,gold);b(.24,.06,.25,.045,.32,.015,ivory);break;
+   case'validation':label='檢測放大鏡';ring(.02,.23,0,.40,blue);v([-.12,.08,0],[-.34,-.17,0],.075,red);v([-.06,.19,.02],[.01,.11,.02],.025,gold);v([.01,.11,.02],[.12,.29,.02],.025,gold);break;
+   case'logistics':label='物流貨車';b(0,.10,0,.68,.34,.28,blue);b(.34,.06,0,.24,.27,.28,ivory);b(.36,.16,.15,.15,.09,.025,blue);for(const dx of [-.22,.32])sphere(dx,-.11,.15,.085,C.ink);break;
+   case'oem':label='合作拼接模組';b(-.16,.13,0,.35,.36,.24,blue);b(.18,.13,0,.35,.36,.24,gold);sphere(0,.16,.02,.09,ivory);break;
+  }
+  rooftopSymbols.push({tile:i,label,x,z,y:a.y});
+ }
+
  tileCenters.forEach(courtyard);
+ tileCenters.forEach(c=>roofEmblem(c.i));
  // Short canal crossings are walking passages; they do not encode content relationships.
  const routes=[];owner=-1;
  tileCenters.forEach(a=>edgeSteps.forEach((_,edge)=>{const other=neighbor(a.i,edge);if(other===undefined||other<=a.i)return;const b=tileCenters[other],len=Math.hypot(b.x-a.x,b.z-a.z),dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,ry=Math.atan2(dx,dz),start=[a.x+dx*1.68,a.z+dz*1.68],end=[b.x-dx*1.68,b.z-dz*1.68];routes.push({a:a.i,b:other,kind:'walkway'});box((a.x+b.x)/2,TOP-.05,(a.z+b.z)/2,.70,.10,len-3.36,0xe3ddd0,ry);for(const side of [-1,1]){const nx=dz*.34*side,nz=-dx*.34*side;fence(start[0]+nx,start[1]+nz,end[0]+nx,end[1]+nz,0)}}));
@@ -186,5 +222,5 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
   root.updateMatrixWorld(true);for(const{mesh,color}of vehicleMeshes){if(!mesh.parent.visible)continue;const pos=new T.Vector3(),q=new T.Quaternion(),scale=new T.Vector3();mesh.matrixWorld.decompose(pos,q,scale);const e=new T.Euler().setFromQuaternion(q),geo=mesh.geometry;out.push({kind:'transport',positions:Array.from(geo.attributes.position.array),indices:geo.index?Array.from(geo.index.array):null,items:[{pos:pos.toArray(),scale:scale.toArray(),rot:[e.x,e.y,e.z],color}]})}
   return {centers:tileCenters,batches:out,landscape};
  }
- return Object.assign(api,{root,tileCenters,landscape,transport,vehicles,updateTransport,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
+ return Object.assign(api,{root,tileCenters,rooftopSymbols,roofs,landscape,transport,vehicles,updateTransport,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
 }
