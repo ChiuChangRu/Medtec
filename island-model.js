@@ -9,14 +9,14 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  const cyl=(x,y,z,r,h,c=C.white)=>p('cyl',x,y,z,r*2,h,r*2,c);
  const ball=(x,y,z,r,c=C.green,s=[1,1,1])=>p('ball',x,y,z,r*2*s[0],r*2*s[1],r*2*s[2],c);
  function beam(a,b,width,c,kind='cyl'){const A=new T.Vector3(...a),B=new T.Vector3(...b),v=B.clone().sub(A),q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),v.clone().normalize()),e=new T.Euler().setFromQuaternion(q);parts.push({kind,pos:A.add(B).multiplyScalar(.5).toArray(),scale:[width,v.length(),width],color:c,rot:[e.x,e.y,e.z],owner})}
- const TOP=.66,R=2.18,SPACE=1.14;
+ const TOP=.66,R=2.18,SPACE=1.20;
  definitions.forEach((d,i)=>tileCenters.push({i,x:Math.sqrt(3)*R*SPACE*(d.q+d.r/2),z:1.5*R*SPACE*d.r}));
  const cells=new Map(definitions.map((d,i)=>[d.q+','+d.r,i])),edgeSteps=[[0,1],[-1,1],[-1,0],[0,-1],[1,-1],[1,0]];
  function neighbor(i,edge){const d=definitions[i],step=edgeSteps[edge];return cells.get((d.q+step[0])+','+(d.r+step[1]))}
  const mx=0,mz=0;tileCenters.forEach(c=>{c.x-=mx;c.z-=mz});
  function point(cx,cz,r,k){const a=Math.PI/6+k*Math.PI/3;return[cx+Math.cos(a)*r,cz+Math.sin(a)*r]}
  function fence(x1,z1,x2,z2,style=0){const length=Math.hypot(x2-x1,z2-z1),n=Math.ceil(length/.29),h=style===2?.26:.31,post=style===1?C.brown:C.white;for(let j=0;j<=n;j++){const t=j/n,x=x1+(x2-x1)*t,z=z1+(z2-z1)*t;cyl(x,TOP+h/2,z,.018,h,post);ball(x,TOP+h+.014,z,.024,style===2?C.coral:post)}beam([x1,TOP+h*.8,z1],[x2,TOP+h*.8,z2],.025,post);if(style===0)beam([x1,TOP+h*.35,z1],[x2,TOP+h*.35,z2],.016,C.teal)}
- function tree(x,z,s=1,pink=false){const y=TOP;beam([x,y,z],[x+.03*s,y+.63*s,z],.09*s,C.brown);beam([x,y+.35*s,z],[x-.2*s,y+.72*s,z+.1*s],.045*s,C.brown);const cols=pink?[0xd7b5a3,0xe4c9b1,0xd4b6a4]:[0x9bb77a,0x87a868,0xa8be86,0x91ad72];for(let j=0;j<6;j++){const a=j*2.399,rr=j?.18*s:0;p('leaf',x+Math.cos(a)*rr,y+(.77+(j%3)*.105)*s,z+Math.sin(a)*rr,.53*s,.48*s,.53*s,cols[j%cols.length],a)}box(x,TOP+.035,z,.38*s,.07,.38*s,0xd6cfb6)}
+ function tree(x,z,s=1,pink=false,y=TOP,wild=false){beam([x,y,z],[x+.03*s,y+.63*s,z],.09*s,C.brown);beam([x,y+.35*s,z],[x-.2*s,y+.72*s,z+.1*s],.045*s,C.brown);const cols=pink?[0xd7b5a3,0xe4c9b1,0xd4b6a4]:[0x9bb77a,0x87a868,0xa8be86,0x91ad72];for(let j=0;j<6;j++){const a=j*2.399,rr=j?.18*s:0;p('leaf',x+Math.cos(a)*rr,y+(.77+(j%3)*.105)*s,z+Math.sin(a)*rr,.53*s,.48*s,.53*s,cols[j%cols.length],a)}if(!wild)box(x,y+.035,z,.38*s,.07,.38*s,0xd6cfb6)}
  function bush(x,z,s=.28){box(x,TOP+.07,z,s*1.8,.14,s*1.1,C.cream);for(let j=0;j<3;j++)p('leaf',x+(j-1)*s*.4,TOP+.19,z,s*.9,s*.8,s*.9,[0x93ad78,0xa7bc86,0x8da86c][j])}
  function palm(x,z,s=1){beam([x,TOP,z],[x+.08*s,TOP+.95*s,z],.075*s,0xb69b6a);for(let j=0;j<7;j++){const a=j/7*Math.PI*2;p('round',x+Math.sin(a)*.22*s,TOP+.99*s,z+Math.cos(a)*.22*s,.13*s,.055*s,.65*s,0x89b778,a,.16)}ball(x,TOP+.96*s,z,.12*s,0x8eaa6c)}
  function bench(x,z,ry=0){for(let j=0;j<4;j++)box(x,TOP+.16,z+(j-1.5)*.045,.42,.035,.035,C.wood,ry);for(const dx of [-.15,.15])box(x+dx,TOP+.08,z,.035,.15,.14,C.ink);box(x,TOP+.28,z+.085,.44,.12,.025,C.wood,ry)}
@@ -95,6 +95,20 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  const routes=[];owner=-1;
  tileCenters.forEach(a=>edgeSteps.forEach((_,edge)=>{const other=neighbor(a.i,edge);if(other===undefined||other<=a.i)return;const b=tileCenters[other],len=Math.hypot(b.x-a.x,b.z-a.z),dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,ry=Math.atan2(dx,dz),start=[a.x+dx*1.68,a.z+dz*1.68],end=[b.x-dx*1.68,b.z-dz*1.68];routes.push({a:a.i,b:other,kind:'walkway'});box((a.x+b.x)/2,TOP-.05,(a.z+b.z)/2,.70,.10,len-3.36,0xe3ddd0,ry);for(const side of [-1,1]){const nx=dz*.34*side,nz=-dx*.34*side;fence(start[0]+nx,start[1]+nz,end[0]+nx,end[1]+nz,0)}}));
 
+ // A continuous faceted lake basin surrounds the navigable districts.
+ function lakeBasin(){
+  owner=-1;const segments=64,scales=[1,1.045,1.16,1.42,1.85,2.6,4],levels=[.015,.17,.68,2.6,7.2,4.1,3.2],rings=[],triangles=[],groups=new Map(),palette=[0xcbd0ac,0xbdc69b,0xb7c195,0xb1bc8e,0xbbc599,0xb4bf92],rx=20.2,rz=18.7;
+  for(let j=0;j<scales.length;j++){rings[j]=[];for(let k=0;k<segments;k++){const a=k/segments*Math.PI*2,shore=1+.050*Math.sin(a*3+.3)+.030*Math.cos(a*7),ridge=Math.sin(a*5+.2)*.8+Math.cos(a*9)*.45+Math.sin(a*3)*.65,y=levels[j]+(j>1?ridge*(j-1)*.32:Math.sin(a*5)*.025);rings[j].push([Math.cos(a)*rx*scales[j]*shore,y,Math.sin(a)*rz*scales[j]*shore])}}
+  function triangle(A,B,C,j,k){if((B[2]-A[2])*(C[0]-A[0])-(B[0]-A[0])*(C[2]-A[2])<0)[B,C]=[C,B];const color=j===0?palette[0]:palette[1+(k+j*3)%5];if(!groups.has(color))groups.set(color,[]);groups.get(color).push(...A,...B,...C);triangles.push({A,B,C,band:j})}
+  for(let j=0;j<rings.length-1;j++)for(let k=0;k<segments;k++){const next=(k+1)%segments,A=rings[j][k],B=rings[j+1][k],C=rings[j][next],D=rings[j+1][next];triangle(A,B,C,j,k);triangle(B,D,C,j,k+1)}
+  let index=0;for(const[color,positions]of groups){const kind='landscape'+index++,geo=new T.BufferGeometry();geo.setAttribute('position',new T.Float32BufferAttribute(positions,3));geo.computeVertexNormals();G[kind]=geo;p(kind,0,0,0,1,1,1,color)}
+  function pine(x,y,z,s){cyl(x,y+.30*s,z,.035*s,.60*s,C.brown);p('cone',x,y+.68*s,z,.56*s,1.05*s,.56*s,0x839c6b);p('cone',x,y+1.02*s,z,.38*s,.88*s,.38*s,0x9bb07a)}
+  let forestCount=0;for(const t of triangles){if(t.band<1||t.band>3||rand()>.60)continue;let u=.18+rand()*.48,v=.18+rand()*.35;if(u+v>.88)v=.88-u;const w=1-u-v,x=t.A[0]*u+t.B[0]*v+t.C[0]*w,y=t.A[1]*u+t.B[1]*v+t.C[1]*w,z=t.A[2]*u+t.B[2]*v+t.C[2]*w,s=.65+rand()*.65;if(rand()<.65)pine(x,y,z,s);else tree(x,z,s,false,y,true);forestCount++}
+  let cloudGroups=0;for(let c=0;c<12;c++){const a=c/12*Math.PI*2+.15;if(Math.cos(a)*.47+Math.sin(a)*.65>.05)continue;cloudGroups++;const x=Math.cos(a)*32,z=Math.sin(a)*30,y=11+Math.sin(a*3)*1.4;for(let b=0;b<6;b++){const f=b/5-.5;ball(x+f*3.6,y+Math.sin(b*1.4)*.28,z+Math.cos(b*1.8)*.48,.88+(b%3)*.14,0xf1f0e5,[1.25,.72,.90])}}
+  return{shoreline:rings[0],overview:Array.from({length:12},(_,i)=>({x:Math.cos(i/12*Math.PI*2)*18.9,z:Math.sin(i/12*Math.PI*2)*17.5})),forestCount,terrainTriangles:triangles.length,cloudGroups};
+ }
+ const landscape=lakeBasin();
+
  G.glass=G.round;const batches=new Map();for(const a of parts){const key=a.color===C.glass?'glass':a.kind;let b=batches.get(key);if(!b)batches.set(key,b=[]);b.push(a)}
  const staticMeshes=[];for(const [kind,items]of batches){const material=new T.MeshStandardMaterial({roughness:kind==='ball'?.66:.82,metalness:0,vertexColors:false});const mesh=new T.InstancedMesh(G[kind],material,items.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.owners=items.map(p=>p.owner);const dummy=new T.Object3D();items.forEach((a,i)=>{dummy.position.set(...a.pos);dummy.rotation.set(...a.rot);dummy.scale.set(...a.scale);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(a.color))});mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();root.add(mesh);staticMeshes.push({mesh,items,kind})}
  // Connect building doors, their forecourts, sidewalks and the adjacent-cell crossings.
@@ -140,7 +154,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function exportRender(){
   const out=staticMeshes.map(b=>({kind:b.kind,positions:Array.from(G[b.kind].attributes.position.array),normals:Array.from(G[b.kind].attributes.normal.array),indices:G[b.kind].index?Array.from(G[b.kind].index.array):null,items:b.items}));
   for(const b of dynamicMeshes){const kind=b.list.length?actors[b.list[0].actor].parts[b.list[0].part].kind:null;if(!kind)continue;const items=b.list.map(r=>{const a=actors[r.actor];if(a.indoors)return null;const p=a.parts[r.part],c=Math.cos(a.ry),s=Math.sin(a.ry);return{kind,pos:[a.x+p.pos[0]*c+p.pos[2]*s,a.y+p.pos[1],a.z-p.pos[0]*s+p.pos[2]*c],scale:p.scale,color:p.color,rot:[p.rot[0],p.rot[1]+a.ry,p.rot[2]]}}).filter(Boolean);out.push({kind,positions:Array.from(G[kind].attributes.position.array),normals:Array.from(G[kind].attributes.normal.array),indices:G[kind].index?Array.from(G[kind].index.array):null,items})}
-  return {centers:tileCenters,batches:out};
+  return {centers:tileCenters,batches:out,landscape};
  }
- return Object.assign(api,{root,tileCenters,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
+ return Object.assign(api,{root,tileCenters,landscape,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,doors,navigation:{nodes,doorIds,stations},constants:{TOP,R},exportRender});
 }
