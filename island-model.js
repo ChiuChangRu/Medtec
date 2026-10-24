@@ -9,8 +9,10 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  const cyl=(x,y,z,r,h,c=C.white)=>p('cyl',x,y,z,r*2,h,r*2,c);
  const ball=(x,y,z,r,c=C.green,s=[1,1,1])=>p('ball',x,y,z,r*2*s[0],r*2*s[1],r*2*s[2],c);
  function beam(a,b,width,c,kind='cyl'){const A=new T.Vector3(...a),B=new T.Vector3(...b),v=B.clone().sub(A),q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),v.clone().normalize()),e=new T.Euler().setFromQuaternion(q);parts.push({kind,pos:A.add(B).multiplyScalar(.5).toArray(),scale:[width,v.length(),width],color:c,rot:[e.x,e.y,e.z],owner})}
- const TOP=.66,R=2.18,SPACE=1.24;
- definitions.forEach((d,i)=>{const spread=d.type==='tech'?1.12:1;tileCenters.push({i,x:Math.sqrt(3)*R*SPACE*(d.q+d.r/2)*spread,z:1.5*R*SPACE*d.r*spread})});
+ const TOP=.66,R=2.18,SPACE=1.0;
+ definitions.forEach((d,i)=>tileCenters.push({i,x:Math.sqrt(3)*R*SPACE*(d.q+d.r/2),z:1.5*R*SPACE*d.r}));
+ const cells=new Map(definitions.map((d,i)=>[d.q+','+d.r,i])),edgeSteps=[[0,1],[-1,1],[-1,0],[0,-1],[1,-1],[1,0]];
+ function neighbor(i,edge){const d=definitions[i],step=edgeSteps[edge];return cells.get((d.q+step[0])+','+(d.r+step[1]))}
  const mx=0,mz=0;tileCenters.forEach(c=>{c.x-=mx;c.z-=mz});
  function point(cx,cz,r,k){const a=Math.PI/6+k*Math.PI/3;return[cx+Math.cos(a)*r,cz+Math.sin(a)*r]}
  function fence(x1,z1,x2,z2,style=0){const length=Math.hypot(x2-x1,z2-z1),n=Math.ceil(length/.29),h=style===2?.26:.31,post=style===1?C.brown:C.white;for(let j=0;j<=n;j++){const t=j/n,x=x1+(x2-x1)*t,z=z1+(z2-z1)*t;cyl(x,TOP+h/2,z,.018,h,post);ball(x,TOP+h+.014,z,.024,style===2?C.coral:post)}beam([x1,TOP+h*.8,z1],[x2,TOP+h*.8,z2],.025,post);if(style===0)beam([x1,TOP+h*.35,z1],[x2,TOP+h*.35,z2],.016,C.teal)}
@@ -59,8 +61,8 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function courtyard(t){const {x,z,i}=t,d=definitions[i];owner=i;
  p('hex',x,.32,z,R*2,.42,R*2,0xc3bda6);p('hex',x,.56,z,R*2.015,.08,R*2.015,C.cream);p('hex',x,.63,z,R*1.98,.065,R*1.98,d.type==='tech'?0xe7d7b6:[0xcacdb4,0xd8d5c8,0xd6cbb2,0xbec9a8][i%4]);
  for(let ix=-8;ix<=8;ix++)for(let iz=-9;iz<=9;iz++){const px=ix*.22,pz=iz*.22;if(Math.abs(px)>Math.sqrt(3)*R*.46||Math.abs(pz)>R*.92-Math.abs(px)/Math.sqrt(3))continue;if(Math.hypot(px,pz)<1.25&&i%4!==0)continue;p('box',x+px,TOP-.014,z+pz,.207,.025,.207,(ix+iz+i)%3?0xe1ddd0:0xd8d6c9)}
- for(let edge=0;edge<6;edge++){if(edge===2||edge===5)continue;const a=point(x,z,R*.91,edge),b=point(x,z,R*.91,edge+1);fence(...a,...b,i%3);}
- for(let j=0;j<8;j++){const a=j/8*Math.PI*2+.18,rr=1.78;if(j===3)continue;tree(x+Math.cos(a)*rr,z+Math.sin(a)*rr,.52+rand()*.18,i===3&&j%3===0)}
+ for(let edge=0;edge<6;edge++){const other=neighbor(i,edge);if(other!==undefined){if(other>i){const a=point(x,z,R,edge),b=point(x,z,R,edge+1);beam([a[0],TOP+.006,a[1]],[b[0],TOP+.006,b[1]],.032,0xf5ecdb)}continue}const a=point(x,z,R*.91,edge),b=point(x,z,R*.91,edge+1);fence(...a,...b,i%3);}
+ for(let j=0;j<8;j++){const a=j/8*Math.PI*2+.18,rr=1.78;if(j===3||edgeSteps.some((_,edge)=>{if(neighbor(i,edge)===undefined)return false;const direction=(edge+1)*Math.PI/3;return Math.abs(Math.atan2(Math.sin(a-direction),Math.cos(a-direction)))<.24}))continue;tree(x+Math.cos(a)*rr,z+Math.sin(a)*rr,.52+rand()*.18,i===3&&j%3===0)}
  for(let j=0;j<4;j++){const a=j/4*Math.PI*2+.2;lamp(x+Math.cos(a)*1.85,z+Math.sin(a)*1.85);if(j%2===0)bench(x+Math.cos(a)*1.55,z+Math.sin(a)*1.55,a);else bin(x+Math.cos(a)*1.66,z+Math.sin(a)*1.66)}
  for(let j=0;j<5;j++){const a=j*2.4+i;flower(x+Math.cos(a)*1.70,z+Math.sin(a)*1.70)}
  for(let j=0;j<10;j++){const a=j*.63+i*.27;actors.push({...person(x+Math.cos(a)*1.55,z+Math.sin(a)*1.55,-a,j+i,d.role),tile:i,phase:rand(),speed:.022+rand()*.012,variant:j+i})}
@@ -89,16 +91,13 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  if(i%3===0){cyl(X-1.25,TOP+.48,Z-.95,.028,.95,C.wood);cyl(X+1.25,TOP+.48,Z-.95,.028,.95,C.wood);bunting([X-1.25,TOP+.95,Z-.95],[X+1.25,TOP+.95,Z-.95]);}
  }
  tileCenters.forEach(courtyard);
- // Water crossings are separate from each island, with visible planks and handrails.
- const routes=[],main=tileCenters.filter(c=>definitions[c.i].type!=='tech');owner=-1;
- function addRoute(a,b,kind='main',depts=[]){if(routes.some(r=>(r.a===a.i&&r.b===b.i)||(r.a===b.i&&r.b===a.i)))return;const i=a.i,j=b.i,len=Math.hypot(a.x-b.x,a.z-b.z);routes.push({a:i,b:j,kind,depts});const dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,start=[a.x+dx*1.87,a.z+dz*1.87],end=[b.x-dx*1.87,b.z-dz*1.87],dist=Math.hypot(end[0]-start[0],end[1]-start[1]),ry=Math.atan2(dx,dz);const n=Math.ceil(dist/.12);for(let k=0;k<=n;k++){const t=k/n;box(start[0]+(end[0]-start[0])*t,TOP-.015,start[1]+(end[1]-start[1])*t,.46,.10,.105,i%3===0?C.cream:C.wood,ry)}for(const side of [-1,1]){const offset=.23,nx=dz*offset*side,nz=-dx*offset*side;fence(start[0]+nx,start[1]+nz,end[0]+nx,end[1]+nz,1)}}
- main.forEach((a,i)=>main.forEach((b,j)=>{if(j>i&&Math.hypot(a.x-b.x,a.z-b.z)<4.8)addRoute(a,b)}));
- function clearCrossing(a,b){const dx=b.x-a.x,dz=b.z-a.z,l2=dx*dx+dz*dz;return tileCenters.every(c=>{if(c===a||c===b)return true;const t=((c.x-a.x)*dx+(c.z-a.z)*dz)/l2;if(t<=0||t>=1)return true;return Math.hypot(c.x-a.x-dx*t,c.z-a.z-dz*t)>R*1.04})}
- tileCenters.filter(c=>definitions[c.i].type==='tech').forEach(a=>{const depts=definitions[a.i].depts||[],near=main.filter(b=>depts.includes(definitions[b.i].id)&&Math.hypot(a.x-b.x,a.z-b.z)<7&&clearCrossing(a,b));if(near.length){near.forEach(b=>addRoute(a,b,'technical',depts));return}const outer=main.filter(b=>definitions[b.i].type!=='dept'&&definitions[b.i].id!=='hospital'&&clearCrossing(a,b)).sort((b,c)=>Math.hypot(a.x-b.x,a.z-b.z)-Math.hypot(a.x-c.x,a.z-c.z));if(!outer.length)throw Error('No clear technical island crossing');addRoute(a,outer[0],'technical',depts)});
+ // Shared edges are walking passages; they do not encode content relationships.
+ const routes=[];owner=-1;
+ tileCenters.forEach(a=>edgeSteps.forEach((_,edge)=>{const other=neighbor(a.i,edge);if(other===undefined||other<=a.i)return;const b=tileCenters[other],len=Math.hypot(b.x-a.x,b.z-a.z),dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,ry=Math.atan2(dx,dz);routes.push({a:a.i,b:other,kind:'walkway'});box((a.x+b.x)/2,TOP-.015,(a.z+b.z)/2,.56,.03,len-2.7,0xe0ddd0,ry)}));
 
  G.glass=G.round;const batches=new Map();for(const a of parts){const key=a.color===C.glass?'glass':a.kind;let b=batches.get(key);if(!b)batches.set(key,b=[]);b.push(a)}
  const staticMeshes=[];for(const [kind,items]of batches){const material=new T.MeshStandardMaterial({roughness:kind==='ball'?.66:.82,metalness:0,vertexColors:false});const mesh=new T.InstancedMesh(G[kind],material,items.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.owners=items.map(p=>p.owner);const dummy=new T.Object3D();items.forEach((a,i)=>{dummy.position.set(...a.pos);dummy.rotation.set(...a.rot);dummy.scale.set(...a.scale);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(a.color))});mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();root.add(mesh);staticMeshes.push({mesh,items,kind})}
- // Connect building doors, their forecourts, sidewalks and the existing bridges.
+ // Connect building doors, their forecourts, sidewalks and the shared-edge passages.
  const nodes=[],adj=[],rings=[],doorIds=[],stations=[],pathCache=new Map();
  function node(x,z,tile,building=-1){const id=nodes.length;nodes.push({x,z,tile,building});adj.push([]);return id}
  function link(a,b){const length=Math.hypot(nodes[a].x-nodes[b].x,nodes[a].z-nodes[b].z);adj[a].push([b,length]);adj[b].push([a,length])}
