@@ -11,7 +11,7 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function beam(a,b,width,c,kind='cyl'){const A=new T.Vector3(...a),B=new T.Vector3(...b),v=B.clone().sub(A),q=new T.Quaternion().setFromUnitVectors(new T.Vector3(0,1,0),v.clone().normalize()),e=new T.Euler().setFromQuaternion(q);parts.push({kind,pos:A.add(B).multiplyScalar(.5).toArray(),scale:[width,v.length(),width],color:c,rot:[e.x,e.y,e.z],owner})}
  const TOP=.66,R=2.18,SPACE=1.24;
  definitions.forEach((d,i)=>tileCenters.push({i,x:Math.sqrt(3)*R*SPACE*(d.q+d.r/2),z:1.5*R*SPACE*d.r}));
- const mx=tileCenters.reduce((a,c)=>a+c.x,0)/tileCenters.length,mz=tileCenters.reduce((a,c)=>a+c.z,0)/tileCenters.length;tileCenters.forEach(c=>{c.x-=mx;c.z-=mz});
+ const mx=0,mz=0;tileCenters.forEach(c=>{c.x-=mx;c.z-=mz});
  function point(cx,cz,r,k){const a=Math.PI/6+k*Math.PI/3;return[cx+Math.cos(a)*r,cz+Math.sin(a)*r]}
  function fence(x1,z1,x2,z2,style=0){const length=Math.hypot(x2-x1,z2-z1),n=Math.ceil(length/.29),h=style===2?.26:.31,post=style===1?C.brown:C.white;for(let j=0;j<=n;j++){const t=j/n,x=x1+(x2-x1)*t,z=z1+(z2-z1)*t;cyl(x,TOP+h/2,z,.018,h,post);ball(x,TOP+h+.014,z,.024,style===2?C.coral:post)}beam([x1,TOP+h*.8,z1],[x2,TOP+h*.8,z2],.025,post);if(style===0)beam([x1,TOP+h*.35,z1],[x2,TOP+h*.35,z2],.016,C.teal)}
  function tree(x,z,s=1,pink=false){const y=TOP;beam([x,y,z],[x+.03*s,y+.63*s,z],.09*s,C.brown);beam([x,y+.35*s,z],[x-.2*s,y+.72*s,z+.1*s],.045*s,C.brown);const cols=pink?[0xd7b5a3,0xe4c9b1,0xd4b6a4]:[0x9bb77a,0x87a868,0xa8be86,0x91ad72];for(let j=0;j<6;j++){const a=j*2.399,rr=j?.18*s:0;p('leaf',x+Math.cos(a)*rr,y+(.77+(j%3)*.105)*s,z+Math.sin(a)*rr,.53*s,.48*s,.53*s,cols[j%cols.length],a)}box(x,TOP+.035,z,.38*s,.07,.38*s,0xd6cfb6)}
@@ -30,49 +30,85 @@ export function buildMedicalTown(T,RoundedBoxGeometry,definitions){
  function tank(x,z,r=.25,h=.65){cyl(x,TOP+h/2,z,r,h,0xe4e8df);ball(x,TOP+h,z,r,0xe7ebe2,[1,.35,1]);cyl(x,TOP+.10,z,r*1.08,.08,C.teal);beam([x+r,TOP+.30,z],[x+r+.28,TOP+.30,z],.04,C.teal)}
  function solar(x,y,z){box(x,y,z,.36,.04,.27,0x527b82);for(let j=0;j<3;j++)box(x+(j-1)*.11,y+.024,z,.008,.008,.27,0xa5c4c4)}
  function statue(x,z){cyl(x,TOP+.06,z,.28,.12,0xddd7c7);p('ring',x,TOP+.52,z,.50,.50,.50,C.coral,0,Math.PI/6);box(x,TOP+.22,z,.15,.28,.15,C.cream)}
- function person(x,z,ry=0,variant=0){const skin=[0xe5bf98,0xcda67f,0xb7875d,0xeac7a7][variant%4],shirt=[0xec8857,0x4d8b9a,0xe2c85c,0x719c7a,0xf5eee0,0xaca6c5][variant%6];const g=[];function a(kind,pos,scale,color,rot=[0,0,0]){g.push({kind,pos,scale,color,rot})}a('round',[0,.21,0],[.14,.18,.095],shirt);a('ball',[0,.365,0],[.17,.18,.165],skin);a('ball',[0,.408,-.018],[.185,.115,.18],variant%3===0?0x6b4b35:0x383633);a('cyl',[-.045,.08,0],[.04,.14,.045],0x55554e);a('cyl',[.045,.08,0],[.04,.14,.045],0x55554e);a('round',[-.045,.018,.022],[.056,.035,.09],0x343e3c);a('round',[.045,.018,.022],[.056,.035,.09],0x343e3c);a('cyl',[-.098,.22,0],[.035,.15,.035],skin,[0,0,.12]);a('cyl',[.098,.22,0],[.035,.15,.035],skin,[0,0,-.12]);if(variant%3===0)a('round',[0,.21,.115],[.14,.13,.11],0xdba36e);if(variant%5===0)a('round',[0,.225,-.077],[.12,.14,.06],0x688e8d);if(variant%7===0){a('ball',[0,.438,0],[.21,.09,.21],0xe4b54f);a('cyl',[0,.414,0],[.23,.028,.23],0xe4b54f)}const actor={parts:g,x,z,y:TOP+.01,ry,variant};return actor}
- function staticPerson(x,z,ry,variant){const a=person(x,z,ry,variant),m=new T.Matrix4().makeRotationY(ry);for(const g of a.parts){const q=new T.Vector3(...g.pos).applyMatrix4(m);p(g.kind,x+q.x,TOP+q.y,z+q.z,...g.scale,g.color,ry+g.rot[1],g.rot[2],g.rot[0])}}
+ function person(x,z,ry=0,variant=0,role='sales'){
+  if(role==='hospital')role=['doctor','nurse','patient'][variant%3];
+  const g=[],skin=[0xe5bf98,0xcda67f,0xb7875d,0xeac7a7][variant%4],clean=role==='factory',coat=role==='doctor'||role==='lab',suit=role==='sales',wheel=role==='patient'&&variant%4===0;
+  const shirt=clean?0xeaf3ed:coat?0xfaf8ed:role==='nurse'?0x62a9b0:suit?0x344a61:[0xc0d4d5,0xe6bea5,0x9cb9b9][variant%3],pants=clean?0xe0eee7:suit?0x344354:0x667b80;
+  function a(kind,pos,scale,color,rot=[0,0,0]){g.push({kind,pos,scale,color,rot})}
+  a('round',[0,.21,0],[.15,coat?.23:.18,.10],shirt);
+  a('ball',[0,.365,0],clean?[.205,.21,.195]:[.17,.18,.165],clean?0xf3f6eb:skin);
+  a('ball',[0,.408,-.018],clean?[.205,.12,.19]:[.185,.115,.18],clean?0xf3f6eb:variant%3===0?0x6b4b35:0x383633);
+  a('cyl',[-.045,.08,0],[.045,.14,.05],pants);a('cyl',[.045,.08,0],[.045,.14,.05],pants);
+  a('round',[-.045,.018,.022],[.06,clean?.06:.035,.09],clean?0xe7f2eb:0x343e3c);a('round',[.045,.018,.022],[.06,clean?.06:.035,.09],clean?0xe7f2eb:0x343e3c);
+  a('cyl',[-.10,.22,0],[.038,.15,.038],coat||clean?shirt:skin,[0,0,.12]);a('cyl',[.10,.22,0],[.038,.15,.038],coat||clean?shirt:skin,[0,0,-.12]);
+  if(clean){a('round',[0,.367,.09],[.105,.095,.027],skin);a('round',[0,.344,.109],[.11,.044,.019],0xa6d1c5);a('ball',[-.025,.381,.108],[.012,.012,.012],0x3b4d45);a('ball',[.025,.381,.108],[.012,.012,.012],0x3b4d45);a('round',[0,.14,.052],[.008,.18,.008],0xbdcfc8)}
+  if(suit){a('round',[0,.255,.058],[.055,.11,.017],0xf4efe0);a('round',[0,.238,.071],[.016,.095,.012],0xca754c);a('round',[-.145,.14,.015],[.14,.105,.065],0x986f4d);a('ring',[-.145,.21,.015],[.07,.045,.025],0x4b4940)}
+  if(role==='doctor'){a('ring',[0,.263,.059],[.085,.10,.015],0x596e6e);a('ball',[.025,.214,.072],[.031,.031,.015],0x45666b);a('round',[-.045,.25,.057],[.035,.042,.01],0x79a9b2)}
+  if(role==='nurse'){a('round',[-.045,.25,.055],[.035,.046,.012],0xf6f0df);a('round',[.04,.27,.055],[.035,.009,.01],0xdbe7df)}
+  if(role==='lab'){a('round',[0,.38,.088],[.14,.035,.02],0x8bbfca);a('round',[-.045,.25,.057],[.035,.042,.01],0x79a9b2)}
+  if(clean&&variant%3===0)a('round',[0,.21,.125],[.15,.13,.11],0xe0c79d);
+  if(wheel){a('round',[0,.115,-.015],[.23,.05,.22],0x4f7b90);a('round',[0,.22,-.105],[.23,.23,.04],0x4f7b90);for(const dx of [-.14,.14])a('ring',[dx,.095,0],[.19,.19,.19],0x3f555b,[0,Math.PI/2,0]);a('round',[0,.04,.16],[.21,.025,.11],0xaabfc0)}
+  return {parts:g,x,z,y:TOP+.01,ry,variant,role,wheel};
+ }
+ function staticPerson(x,z,ry,variant,role){const a=person(x,z,ry,variant,role),m=new T.Matrix4().makeRotationY(ry);for(const g of a.parts){const q=new T.Vector3(...g.pos).applyMatrix4(m);p(g.kind,x+q.x,TOP+q.y,z+q.z,...g.scale,g.color,ry+g.rot[1],g.rot[2],g.rot[0])}}
  function ambulance(x,z,ry=0){box(x,TOP+.17,z,.35,.27,.72,C.white,ry);box(x,TOP+.37,z-.12,.31,.18,.35,C.white,ry);box(x,TOP+.39,z+.075,.32,.15,.025,C.glass,ry);box(x,TOP+.50,z-.13,.16,.045,.07,C.coral,ry);for(const dx of [-.19,.19])for(const dz of [-.22,.22])p('cyl',x+dx,TOP+.075,z+dz,.15,.045,.15,0x49524a,0,Math.PI/2);cross(x,TOP+.315,z+.1,.18)}
  function tables(x,z){cyl(x,TOP+.23,z,.17,.035,0xe2c086);cyl(x,TOP+.12,z,.025,.23,C.ink);for(let j=0;j<3;j++){const a=j*2.094;box(x+Math.cos(a)*.23,TOP+.13,z+Math.sin(a)*.23,.13,.03,.13,C.teal);cyl(x+Math.cos(a)*.23,TOP+.07,z+Math.sin(a)*.23,.012,.13,C.ink)}}
- function courtyard(t){const {x,z,i}=t;owner=i;
+ function courtyard(t){const {x,z,i}=t,d=definitions[i];owner=i;
  p('hex',x,.32,z,R*2,.42,R*2,0xc3bda6);p('hex',x,.56,z,R*2.015,.08,R*2.015,C.cream);p('hex',x,.63,z,R*1.98,.065,R*1.98,[0xcacdb4,0xd8d5c8,0xd6cbb2,0xbec9a8][i%4]);
  for(let ix=-8;ix<=8;ix++)for(let iz=-9;iz<=9;iz++){const px=ix*.22,pz=iz*.22;if(Math.abs(px)>Math.sqrt(3)*R*.46||Math.abs(pz)>R*.92-Math.abs(px)/Math.sqrt(3))continue;if(Math.hypot(px,pz)<1.25&&i%4!==0)continue;p('box',x+px,TOP-.014,z+pz,.207,.025,.207,(ix+iz+i)%3?0xe1ddd0:0xd8d6c9)}
  for(let edge=0;edge<6;edge++){if(edge===2||edge===5)continue;const a=point(x,z,R*.91,edge),b=point(x,z,R*.91,edge+1);fence(...a,...b,i%3);}
  for(let j=0;j<8;j++){const a=j/8*Math.PI*2+.18,rr=j%2?1.53:1.74;tree(x+Math.cos(a)*rr,z+Math.sin(a)*rr,.52+rand()*.18,i===3&&j%3===0)}
  for(let j=0;j<4;j++){const a=j/4*Math.PI*2+.2;lamp(x+Math.cos(a)*1.85,z+Math.sin(a)*1.85);if(j%2===0)bench(x+Math.cos(a)*1.55,z+Math.sin(a)*1.55,a);else bin(x+Math.cos(a)*1.66,z+Math.sin(a)*1.66)}
  for(let j=0;j<5;j++){const a=j*2.4+i;flower(x+Math.cos(a)*1.70,z+Math.sin(a)*1.70)}
- for(let j=0;j<10;j++){const a=j*.63+i*.27;staticPerson(x+Math.cos(a)*1.55,z+Math.sin(a)*1.55,-a,j+i)}
- for(let j=0;j<3;j++)actors.push({...person(x,z,0,i+j),tile:i,phase:j/3+i*.1,speed:.018+(i%3)*.004});
+ for(let j=0;j<10;j++){const a=j*.63+i*.27;actors.push({...person(x+Math.cos(a)*1.55,z+Math.sin(a)*1.55,-a,j+i,d.role),tile:i,phase:rand(),speed:.022+rand()*.012,variant:j+i})}
+ for(let j=0;j<3;j++)actors.push({...person(x,z,0,i+j,d.role),tile:i,phase:j/3+i*.1,speed:.018+(i%3)*.004});
  const X=x,Z=z;
- switch(i){
- case 0:building(X-.40,Z-.4,1.05,1.05,.8);building(X+.64,Z-.40,.68,.64,.72,C.coral);canopy(X,Z+.55,.95,.5);cross(X-.4,TOP+1.24,Z-.4,.44);ambulance(X+.73,Z+.65);bush(X-.75,Z+.85,.32);break;
+ switch(d.model??i){
+ case 0:building(X-.40,Z-.4,1.05,1.05,.8,0xb5c8c3,true);building(X+.64,Z-.40,.68,.64,.72,C.coral);canopy(X,Z+.55,.95,.5);p('ring',X-.4,TOP+1.27,Z-.4,.62,.62,.22,C.teal,Math.PI/2);ambulance(X+.73,Z+.65);bush(X-.75,Z+.85,.32);break;
  case 1:building(X-.47,Z-.38,1.0,.73,.85,C.coral,true);for(let j=0;j<3;j++)tank(X+.65,Z-.7+j*.5,.22,.65);for(let j=0;j<3;j++)p('ring',X-.6+j*.4,TOP+.23,Z+.7,.32,.32,.32,C.teal,Math.PI/2);box(X,TOP+.1,Z+.7,1.4,.14,.22,C.white);break;
  case 2:building(X-.45,Z-.4,.85,.82,.75);tank(X+.65,Z-.4,.27,.55);box(X+.3,TOP+.06,Z+.6,1.2,.12,.65,0x91bbb4);for(let j=0;j<5;j++)box(X-.15+j*.23,TOP+.14,Z+.6,.13,.07,.49,C.white);canopy(X-.65,Z+.65,.5,.55);break;
  case 3:building(X-.6,Z-.55,.75,.8,.7);box(X+.50,TOP+.025,Z+.1,1.02,.05,1.5,0x93bbb7);box(X+.5,TOP+.056,Z+.1,.80,.018,1.3,0x75b0b7);fence(X+.02,Z-.65,X+.02,Z+.85,0);tree(X-.70,Z+.55,.8,true);tables(X-.15,Z+.75);break;
  case 4:building(X-.45,Z-.50,1.05,.8,.75,C.coral,true);canopy(X+.55,Z+.45,.75,1.05);for(let j=0;j<4;j++){cyl(X+.55,TOP+.25,Z+.1+j*.23,.07,.36,[C.teal,C.coral,0xe7c577,C.white][j]);cyl(X+.55,TOP+.46,Z+.1+j*.23,.045,.07,C.cream)}tables(X-.65,Z+.55);break;
- case 5:building(X-.45,Z-.4,.9,1.32,.8,C.coral,true);building(X+.63,Z-.35,.6,.68,.74);canopy(X+.5,Z+.65,.85,.5);for(let j=0;j<3;j++){box(X-.7+j*.3,TOP+.16,Z+.7,.15,.25,.35,C.teal);beam([X-.7+j*.3,TOP+.3,Z+.7],[X-.55+j*.3,TOP+.6,Z+.7],.026,C.gray)}cross(X-.45,TOP+1.49,Z-.4,.42);break;
+ case 5:building(X-.45,Z-.4,.9,1.32,.8,C.coral,true);building(X+.63,Z-.35,.6,.68,.74);canopy(X+.5,Z+.65,.85,.5);for(let j=0;j<3;j++){box(X-.7+j*.3,TOP+.16,Z+.7,.15,.25,.35,C.teal);beam([X-.7+j*.3,TOP+.3,Z+.7],[X-.55+j*.3,TOP+.6,Z+.7],.026,C.gray)}for(let k=0;k<3;k++)cyl(X-.72+k*.25,TOP+1.55,Z-.4,.018,.3,C.gray);break;
  case 6:building(X-.3,Z-.55,1.3,.68,.85,C.coral,true);for(let j=0;j<5;j++)box(X-.85+j*.38,TOP+.24,Z+.6,.25,.36,.35,0xd0d8cd);box(X,TOP+.45,Z+.6,1.9,.055,.11,C.teal);cyl(X+.77,TOP+.65,Z-.48,.15,.20,C.gray);solar(X-.45,TOP+.85,Z-.55);break;
  case 7:building(X-.50,Z-.47,1.0,.78,.9,C.coral,true);box(X+.65,TOP+.29,Z-.4,.5,.58,.7,C.teal);for(let j=0;j<3;j++){box(X-.65+j*.4,TOP+.13,Z+.65,.3,.25,.35,[0xe6be67,C.coral,C.teal][j]);box(X-.65+j*.4,TOP+.28,Z+.65,.17,.05,.21,C.cream)}for(let j=0;j<2;j++)tank(X+.7,Z+.32+j*.43,.16,.55);break;
  case 8:building(X-.45,Z-.45,.95,1.12,.90,C.coral,true);for(let j=0;j<3;j++){tank(X+.65,Z-.65+j*.5,.19,.55);beam([X+.65,TOP+.8,Z-.65+j*.5],[X+.32,TOP+.8,Z-.65+j*.5],.04,C.teal)}box(X-.4,TOP+.15,Z+.73,1.0,.3,.4,C.white);p('ring',X-.40,TOP+.45,Z+.73,.45,.45,.45,C.teal,Math.PI/2);break;
  case 9:building(X-.5,Z-.48,.9,.7,.8);canopy(X+.52,Z-.3,.75,1.0);for(let j=0;j<4;j++){box(X-.8+j*.4,TOP+.13,Z+.67,.24,.25,.4,0xd4d9cd);p('ring',X-.8+j*.4,TOP+.35,Z+.67,.17,.17,.17,C.teal,Math.PI/2)}break;
  case 10:building(X-.5,Z-.5,.85,.9,.9,C.coral,true);building(X+.55,Z-.5,.7,.58,.85,C.white,true);box(X+.15,TOP+.18,Z+.65,1.5,.36,.65,C.cream);box(X+.15,TOP+.38,Z+.65,1.2,.055,.48,C.teal);for(let j=0;j<5;j++)cyl(X-.3+j*.22,TOP+.45,Z+.65,.035,.10,C.cream);solar(X-.5,TOP+1.06,Z-.5);break;
  case 11:building(X-.45,Z-.45,.85,1.1,.8,C.coral,true);p('ring',X+.65,TOP+.50,Z-.35,.64,.64,.30,C.teal);box(X+.65,TOP+.10,Z-.35,.7,.15,.4,C.white);for(let j=0;j<3;j++){box(X-.65+j*.42,TOP+.20,Z+.65,.32,.38,.42,[C.cream,C.teal,C.orange][j]);box(X-.65+j*.42,TOP+.41,Z+.65,.22,.05,.25,C.glass)}break;
- case 12:building(X-.45,Z-.35,1.0,1.5,.85,C.white,true);building(X+.60,Z-.45,.68,.86,.75);cross(X-.45,TOP+1.67,Z-.35,.55);canopy(X,Z+.70,1.3,.45);ambulance(X+.8,Z+.65);statue(X-.85,Z+.8);break;
+ case 12:building(X-.42,Z-.30,1.20,2.10,1.02,C.white,true);building(X+.72,Z-.38,.75,1.05,.85,C.white,true);cross(X-.42,TOP+2.28,Z-.30,.63);box(X-.42,TOP+1.52,Z+.225,.42,.10,.04,C.coral);box(X-.42,TOP+1.52,Z+.225,.10,.42,.04,C.coral);canopy(X,Z+.78,1.45,.48);ambulance(X+.92,Z+.72);statue(X-.94,Z+.78);break;
  case 13:building(X-.45,Z-.55,1.05,1.0,.8,C.coral,true);canopy(X+.65,Z-.35,.6,.7);for(let j=0;j<5;j++)box(X-.85+j*.38,TOP+.16,Z+.65,.30,.31,.57,[C.coral,0xe5bf6d,C.teal,0xd9a879,0xa8bc9c][j]);palm(X+.9,Z+.5,.8);break;
+ case 14:building(X-.40,Z-.38,1.0,1.35,.88,0x73989e,true);building(X+.65,Z-.43,.62,.9,.80,0x73989e,true);canopy(X,Z+.58,1.35,.60);tables(X-.55,Z+.62);tables(X+.55,Z+.62);p('ring',X-.40,TOP+1.63,Z-.38,.40,.40,.14,0xc8a258);break;
  }
+ if(d.role==='factory'){for(let j=0;j<5;j++){const a=j/5*Math.PI*2,px=X+Math.sin(a)*1.30,pz=Z+Math.cos(a)*1.30;cyl(px,TOP+.13,pz,.035,.26,C.gray);box(px,TOP+.28,pz,.30,.045,.25,C.white);box(px,TOP+.37,pz,.16,.14,.10,C.teal)}}
  if(i%3===0){cyl(X-1.25,TOP+.48,Z-.95,.028,.95,C.wood);cyl(X+1.25,TOP+.48,Z-.95,.028,.95,C.wood);bunting([X-1.25,TOP+.95,Z-.95],[X+1.25,TOP+.95,Z-.95]);}
  }
  tileCenters.forEach(courtyard);
  // Water crossings are separate from each island, with visible planks and handrails.
  const routes=[];owner=-1;tileCenters.forEach((a,i)=>tileCenters.forEach((b,j)=>{const len=Math.hypot(a.x-b.x,a.z-b.z);if(j<=i||len>4.8)return;const dx=(b.x-a.x)/len,dz=(b.z-a.z)/len,start=[a.x+dx*1.87,a.z+dz*1.87],end=[b.x-dx*1.87,b.z-dz*1.87],dist=Math.hypot(end[0]-start[0],end[1]-start[1]),ry=Math.atan2(dx,dz);routes.push({a:i,b:j});const n=Math.ceil(dist/.12);for(let k=0;k<=n;k++){const t=k/n;box(start[0]+(end[0]-start[0])*t,TOP-.015,start[1]+(end[1]-start[1])*t,.46,.10,.105,i%3===0?C.cream:C.wood,ry)}for(const side of [-1,1]){const offset=.23,nx=dz*offset*side,nz=-dx*offset*side;fence(start[0]+nx,start[1]+nz,end[0]+nx,end[1]+nz,1)}}));
- // Offshore stepping stones, planted islets, dock and colorful cargo containers.
- for(let i=0;i<5;i++){const x=-8+i*.55,z=10.6;box(x,.12,z,.46,.45,.55,[C.coral,0xe5bc69,C.teal,0xd6b58a,C.white][i])}
- for(let k=0;k<3;k++){const x=-11+k*11,z=k%2?-9:8;p('hex',x,.08,z,2.5,.25,2.5,0xcfc8aa);p('hex',x,.23,z,2.3,.06,2.3,0xbcc89d);for(let j=0;j<3;j++)tree(x+(j-1)*.4,z,.45)}
  G.glass=G.round;const batches=new Map();for(const a of parts){const key=a.color===C.glass?'glass':a.kind;let b=batches.get(key);if(!b)batches.set(key,b=[]);b.push(a)}
  const staticMeshes=[];for(const [kind,items]of batches){const material=new T.MeshStandardMaterial({roughness:kind==='ball'?.66:.82,metalness:0,vertexColors:false});const mesh=new T.InstancedMesh(G[kind],material,items.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.owners=items.map(p=>p.owner);const dummy=new T.Object3D();items.forEach((a,i)=>{dummy.position.set(...a.pos);dummy.rotation.set(...a.rot);dummy.scale.set(...a.scale);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new T.Color(a.color))});mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();root.add(mesh);staticMeshes.push({mesh,items,kind})}
- const moving=new T.Group(),movingBatches=new Map();const dummy=new T.Object3D(),basis=new T.Matrix4();actors.forEach((a,ai)=>a.parts.forEach((p,pi)=>{let list=movingBatches.get(p.kind);if(!list)movingBatches.set(p.kind,list=[]);list.push({actor:ai,part:pi})}));const dynamicMeshes=[];for(const[kind,list]of movingBatches){const mesh=new T.InstancedMesh(G[kind],new T.MeshStandardMaterial({roughness:.75}),list.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.frustumCulled=false;list.forEach((r,i)=>mesh.setColorAt(i,new T.Color(actors[r.actor].parts[r.part].color)));moving.add(mesh);dynamicMeshes.push({mesh,list})}root.add(moving);
- function updatePeople(time){actors.forEach(a=>{const t=tileCenters[a.tile],theta=(time*a.speed+a.phase)*Math.PI*2;a.x=t.x+Math.sin(theta)*1.66;a.z=t.z+Math.cos(theta)*1.66;a.ry=theta+Math.PI/2});for(const b of dynamicMeshes){b.list.forEach((r,i)=>{const a=actors[r.actor],p=a.parts[r.part],s=Math.sin(a.ry),c=Math.cos(a.ry),px=p.pos[0]*c+p.pos[2]*s,pz=-p.pos[0]*s+p.pos[2]*c;dummy.position.set(a.x+px,a.y+p.pos[1]+Math.sin(time*6+a.phase)*.008,a.z+pz);const swing=Math.sin(time*7+a.phase*6)*.35*(r.part===3||r.part===7?1:r.part===4||r.part===8?-1:0);dummy.rotation.set(p.rot[0]+swing,p.rot[1]+a.ry,p.rot[2]);dummy.scale.set(...p.scale);dummy.updateMatrix();b.mesh.setMatrixAt(i,dummy.matrix)});b.mesh.instanceMatrix.needsUpdate=true}}
+ actors.forEach((a,i)=>{a.id=i;a.taskName='移動中';a.status='walk';a.phase=(a.phase??0)%1});const moving=new T.Group(),movingBatches=new Map();const dummy=new T.Object3D(),basis=new T.Matrix4();actors.forEach((a,ai)=>a.parts.forEach((p,pi)=>{let list=movingBatches.get(p.kind);if(!list)movingBatches.set(p.kind,list=[]);list.push({actor:ai,part:pi})}));const dynamicMeshes=[];for(const[kind,list]of movingBatches){const mesh=new T.InstancedMesh(G[kind],new T.MeshStandardMaterial({roughness:.75}),list.length);mesh.castShadow=true;mesh.receiveShadow=true;mesh.frustumCulled=false;mesh.userData.personIds=list.map(r=>r.actor);mesh.userData.owners=list.map(r=>actors[r.actor].tile);list.forEach((r,i)=>mesh.setColorAt(i,new T.Color(actors[r.actor].parts[r.part].color)));moving.add(mesh);dynamicMeshes.push({mesh,list})}root.add(moving);
+ const taskNames={doctor:['巡診中','查看病歷','與護理師討論'],nurse:['前往照護站','整理照護用品','協助病人'],patient:['前往候診區','候診中','接受照護'],factory:['搬運物料','操作設備','檢查產品'],sales:['攜帶樣品拜訪','洽談供應需求','確認樣品與訂單'],lab:['移送測試樣品','操作檢測設備','記錄驗證結果']};
+ function updatePeople(time){
+  actors.forEach(a=>{const t=tileCenters[a.tile],phase=(time*a.speed+a.phase)%1,walk=phase<.66,progress=walk?phase/.66:1,base=a.role==='factory'?(a.id%5)/5*Math.PI*2:a.phase*Math.PI*2,theta=base+progress*Math.PI*2;
+   a.x=t.x+Math.sin(theta)*1.62;a.z=t.z+Math.cos(theta)*1.62;a.ry=walk?theta+Math.PI/2:theta+Math.PI;a.status=walk?'walk':'work';a.taskName=taskNames[a.role]?.[walk?0:(a.id%2)+1]||'處理工作';
+   if(a.role==='patient'&&!walk)a.taskName=a.wheel?'等候陪同與照護':'候診中';
+  });
+  for(const b of dynamicMeshes){b.list.forEach((r,i)=>{const a=actors[r.actor],p=a.parts[r.part],s=Math.sin(a.ry),c=Math.cos(a.ry),px=p.pos[0]*c+p.pos[2]*s,pz=-p.pos[0]*s+p.pos[2]*c,walking=a.status==='walk';
+   dummy.position.set(a.x+px,a.y+p.pos[1]+(walking?Math.sin(time*7+a.phase)*.008:0),a.z+pz);
+   let swing=walking?Math.sin(time*7+a.phase*6)*.40*(a.wheel?0:1)*(r.part===3||r.part===7?1:r.part===4||r.part===8?-1:0):0;
+   if(!walking&&(r.part===7||r.part===8))swing=-(a.role==='patient'?.1:.62)+Math.sin(time*4+a.id)*.14;
+   dummy.rotation.set(p.rot[0]+swing,p.rot[1]+a.ry,p.rot[2]);const hidden=api.hiddenActor===a.id?.001:1;dummy.scale.set(p.scale[0]*hidden,p.scale[1]*hidden,p.scale[2]*hidden);dummy.updateMatrix();b.mesh.setMatrixAt(i,dummy.matrix)
+  });b.mesh.instanceMatrix.needsUpdate=true}
+ }
+ const api={hiddenActor:-1};
  updatePeople(0);
  function setNight(n){for(const b of staticMeshes){let changed=false;b.items.forEach((a,i)=>{if(a.color===C.glass){const c=new T.Color(C.glass).lerp(new T.Color(0xffd99a),n);b.mesh.setColorAt(i,c);changed=true}});if(changed)b.mesh.instanceColor.needsUpdate=true}}
- return{root,tileCenters,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,constants:{TOP,R},exportRender(){return {centers:tileCenters,batches:staticMeshes.map(b=>({kind:b.kind,positions:Array.from(G[b.kind].attributes.position.array),normals:Array.from(G[b.kind].attributes.normal.array),indices:G[b.kind].index?Array.from(G[b.kind].index.array):null,items:b.items}))}}};
+ function exportRender(){
+  const out=staticMeshes.map(b=>({kind:b.kind,positions:Array.from(G[b.kind].attributes.position.array),normals:Array.from(G[b.kind].attributes.normal.array),indices:G[b.kind].index?Array.from(G[b.kind].index.array):null,items:b.items}));
+  for(const b of dynamicMeshes){const kind=b.list.length?actors[b.list[0].actor].parts[b.list[0].part].kind:null;if(!kind)continue;const items=b.list.map(r=>{const a=actors[r.actor],p=a.parts[r.part],c=Math.cos(a.ry),s=Math.sin(a.ry);return{kind,pos:[a.x+p.pos[0]*c+p.pos[2]*s,a.y+p.pos[1],a.z-p.pos[0]*s+p.pos[2]*c],scale:p.scale,color:p.color,rot:[p.rot[0],p.rot[1]+a.ry,p.rot[2]]}});out.push({kind,positions:Array.from(G[kind].attributes.position.array),normals:Array.from(G[kind].attributes.normal.array),indices:G[kind].index?Array.from(G[kind].index.array):null,items})}
+  return {centers:tileCenters,batches:out};
+ }
+ return Object.assign(api,{root,tileCenters,staticMeshes,parts,actors,geometries:G,updatePeople,setNight,lamps,routes,constants:{TOP,R},exportRender});
 }
